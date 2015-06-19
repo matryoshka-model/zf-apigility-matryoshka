@@ -12,7 +12,8 @@ use Zend\Stdlib\Hydrator\HydratorInterface;
 interface MatryoshkaConnectedResourceInterface extends HydratorAwareInterface
 {
     /**
-     * Set the entity_class for the controller config calling this resource
+     * Set the entity class name
+     *
      * @param $className
      * @return $this
      */
