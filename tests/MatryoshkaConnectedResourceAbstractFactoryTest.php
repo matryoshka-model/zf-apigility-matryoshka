@@ -93,8 +93,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
         $mock =  $this->getMockBuilder('Matryoshka\Model\Model')
             ->disableOriginalConstructor()
             ->getMock();
-        $mm->setService('Matryoshka\Model',$mock);
-
+        $mm->setService('Matryoshka\Model', $mock);
     }
 
     public function testEmptyConfig()
@@ -226,8 +225,8 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
         $mock =  $this->getMockBuilder('Matryoshka\Model\Model')
             ->disableOriginalConstructor()
             ->getMock();
-        $mm->setService('Matryoshka\Model',$mock);
+        $mm->setService('Matryoshka\Model', $mock);
 
         $serviceManager->get('MatryoshkaApigility\ConnectedResource3');
     }
-} 
+}

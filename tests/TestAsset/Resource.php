@@ -69,8 +69,8 @@ class Resource implements MatryoshkaConnectedResourceInterface
         // TODO: Implement setCollectionCriteriaHydrator() method.
     }
 
-    function __call($name, $arguments)
+    public function __call($name, $arguments)
     {
         // TODO: Implement __call() method.
     }
-} 
+}

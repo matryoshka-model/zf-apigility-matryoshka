@@ -46,12 +46,17 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     protected $objectManager;
 
     /**
+     * Ctor
+     *
      * @param AbstractModel $model
      * @param ObjectManager $objectManager
      * @param string $collectionClass
      */
-    public function __construct(AbstractModel $model, ObjectManager $objectManager, $collectionClass = 'Zend\Paginator\Paginator')
-    {
+    public function __construct(
+        AbstractModel $model,
+        ObjectManager $objectManager,
+        $collectionClass = 'Zend\Paginator\Paginator'
+    ) {
         $this->model = $model;
         $this->objectManager = $objectManager;
         $this->setCollectionClass($collectionClass);
@@ -123,7 +128,6 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
 
     /**
      * {@inheritdoc}
-     *
      */
     public function create($data)
     {
@@ -151,7 +155,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
             return $object;
         }
 
-        throw new RuntimeException('Misconfigured connected resource: the object is not an instance of ActiveRecordInterface', 500);
+        throw new \RuntimeException('Misconfigured connected resource: the object is not an instance of ActiveRecordInterface', 500);
     }
 
     /**

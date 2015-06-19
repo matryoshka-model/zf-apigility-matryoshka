@@ -66,4 +66,4 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
         $this->assertSame($this->resource, $this->resource->setCollectionCriteriaHydrator($hydrator));
         $this->assertSame($hydrator, $this->resource->getCollectionCriteriaHydrator());
     }
-} 
+}

@@ -1,7 +1,9 @@
 <?php
 namespace Matryoshka\Apigility;
 
+use Matryoshka\Apigility\Model\MatryoshkaConnectedResourceInterface;
 use Matryoshka\Model\AbstractModel;
+use Matryoshka\Model\Object\ObjectManager;
 use Zend\ServiceManager\AbstractFactoryInterface;
 use Zend\ServiceManager\AbstractPluginManager;
 use Zend\ServiceManager\Exception\ServiceNotCreatedException;
@@ -76,7 +78,7 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
      * @param ServiceLocatorInterface $serviceLocator
      * @param $name
      * @param $requestedName
-     * @return mixed
+     * @return MatryoshkaConnectedResourceInterface
      */
     public function createServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName)
     {
@@ -91,7 +93,7 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
 
         $resourceClass = $this->getResourceClassFromConfig($config, $requestedName);
 
-        /* @var $resource \Matryoshka\Apigility\Model\MatryoshkaConnectedResource */
+        /* @var $resource MatryoshkaConnectedResourceInterface */
         $resource = new $resourceClass($model, $objectManager, $collectionClass);
 
         if (isset($config['entity_class'])) {
@@ -107,9 +109,11 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
         }
 
         if (isset($config['collection_criteria_hydrator'])) {
-            $resource->setCollectionCriteriaHydrator($this->getHydratorByName(
-                $serviceLocator,
-                $config['collection_criteria_hydrator'])
+            $resource->setCollectionCriteriaHydrator(
+                $this->getHydratorByName(
+                    $serviceLocator,
+                    $config['collection_criteria_hydrator']
+                )
             );
         }
 
@@ -121,13 +125,18 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
     }
 
     /**
-     * @param ServiceLocatorInterface $services
+     * Retrieve the object manager
+     *
+     * @param ServiceLocatorInterface $serviceManager
+     * @return ObjectManager
+     * @throws ServiceNotCreatedException
      */
-    protected function getObjectManagerFromConfig(ServiceLocatorInterface $services)
+    protected function getObjectManagerFromConfig(ServiceLocatorInterface $serviceManager)
     {
-        if ($services->has('Matryoshka\Model\Object\ObjectManager')) {
-            return $services->get('Matryoshka\Model\Object\ObjectManager');
+        if ($serviceManager->has('Matryoshka\Model\Object\ObjectManager')) {
+            return $serviceManager->get('Matryoshka\Model\Object\ObjectManager');
         }
+        // FIXME: wrong exception -> needed a ServiceNotFoundException
         throw new ServiceNotCreatedException(
             sprintf(
                 'Unable to obtain instance of "%s"',
@@ -137,20 +146,23 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
     }
 
     /**
+     * Retrieve the resource class name
+     *
      * @param array $config
      * @param $requestedName
+     * @throws ServiceNotCreatedException
      * @return string
-     * @throws \Zend\ServiceManager\Exception\ServiceNotCreatedException
      */
     protected function getResourceClassFromConfig(array $config, $requestedName)
     {
         $resourceClass = isset($config['resource_class']) ? $config['resource_class'] : $this->resourceClass;
-        if ($resourceClass !== $this->resourceClass
-            && (
-                !class_exists($resourceClass)
-                || !is_subclass_of($resourceClass, 'Matryoshka\Apigility\Model\MatryoshkaConnectedResourceInterface')
+        if ($resourceClass !== $this->resourceClass &&
+            (
+                !class_exists($resourceClass) ||
+                !is_subclass_of($resourceClass, 'Matryoshka\Apigility\Model\MatryoshkaConnectedResourceInterface')
             )
         ) {
+            // FIXME: wrong exception
             throw new ServiceNotCreatedException(
                 sprintf(
                     'Unable to create instance for service "%s"; '
@@ -161,12 +173,16 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
                 )
             );
         }
+
         return $resourceClass;
     }
 
     /**
+     * Retrieve the model service
+     *
      * @param array $config
      * @param ServiceLocatorInterface $services
+     * @throws ServiceNotCreatedException
      * @return AbstractModel
      */
     protected function getModelServiceFromConfig(array $config, ServiceLocatorInterface $services, $requestedName)
@@ -174,6 +190,7 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
         if ($services->get('Matryoshka\Model\ModelManager')->has($config['model'])) {
             return $services->get('Matryoshka\Model\ModelManager')->get($config['model']);
         }
+        // FIXME: wrong exception -> needed a ServiceNotFoundException
         throw new ServiceNotCreatedException(
             sprintf(
                 'Unable to create instance for service "%s"',
@@ -182,10 +199,19 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
         );
     }
 
+    /**
+     * Retrieve the collection class name
+     *
+     * @param array $config
+     * @param $requestedName
+     * @throws ServiceNotCreatedException
+     * @return string
+     */
     protected function getCollectionFromConfig(array $config, $requestedName)
     {
         $collection = isset($config['collection_class']) ? $config['collection_class'] : 'Zend\Paginator\Paginator';
         if (!class_exists($collection)) {
+            // FIXME: wrong exception
             throw new ServiceNotCreatedException(
                 sprintf(
                     'Unable to create instance for service "%s"; collection class "%s" cannot be found',
@@ -198,12 +224,12 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
     }
 
     /**
-     * Retrieve HydratorInterface object from config
+     * Retrieve HydratorInterface object
      *
      * @param ServiceLocatorInterface $serviceLocator
      * @param $name
      * @return HydratorInterface
-     * @throws Exception\RuntimeException
+     * @throws \RuntimeException
      */
     protected function getHydratorByName(ServiceLocatorInterface $serviceLocator, $name)
     {
@@ -212,6 +238,7 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
         }
 
         if (!$serviceLocator->has($name)) {
+            // FIXME: wrong exception -> needed a ServiceNotFoundException
             throw new \RuntimeException(
                 sprintf(
                     'Instance %s not config in the Hydrator Manager',
@@ -249,6 +276,7 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
         }
 
         $this->config = $config[$this->moduleConfigKey][$this->configKey];
+
         return $this->config;
     }
 }
