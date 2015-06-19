@@ -1,4 +1,11 @@
 <?php
+/**
+ * Matryoshka Connected Resource for Apigility
+ *
+ * @link        https://github.com/matryoshka-model/zf-apigility-matryoshka
+ * @copyright   Copyright (c) 2015, Ripa Club
+ * @license     http://opensource.org/licenses/BSD-2-Clause Simplified BSD License
+ */
 namespace Matryoshka\Apigility\Model;
 
 use Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria;
@@ -20,6 +27,8 @@ interface MatryoshkaConnectedResourceInterface extends HydratorAwareInterface
     public function setEntityClass($className);
 
     /**
+     * Set the entity criteria
+     *
      * @param AbstractCriteria $criteria
      * @param $criteria
      * @return $this
@@ -27,6 +36,8 @@ interface MatryoshkaConnectedResourceInterface extends HydratorAwareInterface
     public function setEntityCriteria(AbstractCriteria $criteria);
 
     /**
+     * Set the collection (paginable) criteria
+     *
      * @param PaginableCriteriaInterface $criteria
      * @param $criteria
      * @return $this
@@ -34,6 +45,8 @@ interface MatryoshkaConnectedResourceInterface extends HydratorAwareInterface
     public function setCollectionCriteria(PaginableCriteriaInterface $criteria);
 
     /**
+     * Set the hydrator of the collection criteria
+     *
      * @param HydratorInterface $hydrator
      * @param $hydrator
      * @return $this

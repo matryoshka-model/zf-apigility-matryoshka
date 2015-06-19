@@ -1,8 +1,14 @@
 <?php
+/**
+ * Matryoshka Connected Resource for Apigility
+ *
+ * @link        https://github.com/matryoshka-model/zf-apigility-matryoshka
+ * @copyright   Copyright (c) 2015, Ripa Club
+ * @license     http://opensource.org/licenses/BSD-2-Clause Simplified BSD License
+ */
 namespace MatryoshkaTest\Apigility\Model;
 
 use Matryoshka\Apigility\Model\MatryoshkaConnectedResource;
-use MatryoshkaTest\Model\Criteria\AbstractCriteriaTest;
 use PHPUnit_Framework_TestCase;
 
 /**

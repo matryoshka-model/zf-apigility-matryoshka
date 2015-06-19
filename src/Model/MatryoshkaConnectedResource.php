@@ -8,21 +8,20 @@
  */
 namespace Matryoshka\Apigility\Model;
 
+use Matryoshka\Apigility\Exception\RuntimeException;
 use Matryoshka\Model\AbstractModel;
 use Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria;
 use Matryoshka\Model\Criteria\PaginableCriteriaInterface;
 use Matryoshka\Model\ModelAwareInterface;
-use Matryoshka\Model\ModelAwareTrait;
 use Matryoshka\Model\Object\ActiveRecord\ActiveRecordInterface;
 use Matryoshka\Model\Object\ObjectManager;
+use Matryoshka\Model\ResultSet\PrototypeStrategy\PrototypeStrategyInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
 use Zend\Stdlib\Hydrator\HydratorAwareInterface;
 use Zend\Stdlib\Hydrator\HydratorAwareTrait;
 use Zend\Stdlib\Hydrator\HydratorInterface;
 use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
-use Matryoshka\Apigility\Exception\RuntimeException;
-use Matryoshka\Model\ResultSet\PrototypeStrategy\PrototypeStrategyInterface;
 
 /**
  * Class MatryoshkaConnectedResource
@@ -170,7 +169,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
 
         if ($prototypeStrategy = $this->getPrototypeStrategy()) {
             $object = $prototypeStrategy->createObject($this->model->getObjectPrototype(), $data);
-        } else if ($entityClass = $this->getEntityClass()) {
+        } elseif ($entityClass = $this->getEntityClass()) {
             $object = $this->objectManager->get($entityClass);
         } else {
             $object = $this->model->create();
@@ -186,7 +185,13 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
             return $object;
         }
 
-        throw new RuntimeException('Misconfigured connected resource: the object is not an instance of ActiveRecordInterface', 500);
+        throw new RuntimeException(
+            sprintf(
+                'Misconfigured connected resource: the object is not an instance of "%s"',
+                'Matryoshka\Model\Object\ActiveRecord\ActiveRecordInterface'
+            ),
+            500
+        );
     }
 
     /**

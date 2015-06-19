@@ -1,8 +1,15 @@
 <?php
+/**
+ * Matryoshka Connected Resource for Apigility
+ *
+ * @link        https://github.com/matryoshka-model/zf-apigility-matryoshka
+ * @copyright   Copyright (c) 2015, Ripa Club
+ * @license     http://opensource.org/licenses/BSD-2-Clause Simplified BSD License
+ */
 namespace MatryoshkaTest\Apigility;
 
+use Matryoshka\Apigility\Exception\RuntimeException;
 use PHPUnit_Framework_TestCase;
-use Zend\ModuleManager\Listener\ServiceListener;
 use Zend\Mvc\Service\ServiceManagerConfig;
 use Zend\ServiceManager;
 
@@ -24,7 +31,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
                     'abstract_factories' => [
                         'Matryoshka\Apigility\MatryoshkaConnectedResourceAbstractFactory',
                     ],
-                    'factories'  => [
+                    'factories' => [
                         'Matryoshka\Model\ModelManager' => 'Matryoshka\Model\Service\ModelManagerFactory',
                         'Matryoshka\Model\Object\ObjectManager' => 'Matryoshka\Model\Object\Service\ObjectManagerFactory',
                         'Matryoshka\Model\ResultSet\PrototypeStrategy\ServiceLocatorStrategy' => 'Matryoshka\Model\ResultSet\PrototypeStrategy\Service\ServiceLocatorStrategyFactory',
@@ -35,8 +42,12 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
                         'Matryoshka\Model\ResultSet\HydratingResultSet' => 'Matryoshka\Model\ResultSet\HydratingResultSet',
                     ],
                     'services' => [
-                        'Matryoshka\Criteria\Test1' => $this->getMockForAbstractClass('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria'),
-                        'Matryoshka\Criteria\CollectionTest1' =>  $this->getMock('Matryoshka\Model\Criteria\PaginableCriteriaInterface')
+                        'Matryoshka\Criteria\Test1' => $this->getMockForAbstractClass(
+                            'Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria'
+                        ),
+                        'Matryoshka\Criteria\CollectionTest1' => $this->getMock(
+                            'Matryoshka\Model\Criteria\PaginableCriteriaInterface'
+                        )
                     ],
                     'shared' => [
                         'Matryoshka\Model\ModelManager' => true,
@@ -90,7 +101,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
         $this->serviceManager->setService('Config', $config);
         /* @var $mm \Matryoshka\Model\ModelManager */
         $mm = $this->serviceManager->get('Matryoshka\Model\ModelManager');
-        $mock =  $this->getMockBuilder('Matryoshka\Model\Model')
+        $mock = $this->getMockBuilder('Matryoshka\Model\Model')
             ->disableOriginalConstructor()
             ->getMock();
         $mm->setService('Matryoshka\Model', $mock);
@@ -142,7 +153,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
     }
 
     /**
-     * @expectedException Zend\ServiceManager\Exception\ServiceNotCreatedException
+     * @expectedException RuntimeException
      */
     public function testGetServiceWithExceptionForWrongModelConfig()
     {
@@ -150,7 +161,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
     }
 
     /**
-     * @expectedException Zend\ServiceManager\Exception\ServiceNotCreatedException
+     * @expectedException RuntimeException
      */
     public function testGetServiceWithExceptionForWrongHydratorConfig()
     {
@@ -158,7 +169,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
     }
 
     /**
-     * @expectedException Zend\ServiceManager\Exception\ServiceNotCreatedException
+     * @expectedException RuntimeException
      */
     public function testGetServiceWithExceptionForWrongCollectionClassConfig()
     {
@@ -166,7 +177,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
     }
 
     /**
-     * @expectedException Zend\ServiceManager\Exception\ServiceNotCreatedException
+     * @expectedException RuntimeException
      */
     public function testGetServiceWithExceptionForWrongResourceClassConfig()
     {
@@ -174,7 +185,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
     }
 
     /**
-     * @expectedException Zend\ServiceManager\Exception\ServiceNotCreatedException
+     * @expectedException RuntimeException
      */
     public function testGetServiceWithExceptionForWrongObjectEntityConfig()
     {
@@ -184,7 +195,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
                     'abstract_factories' => [
                         'Matryoshka\Apigility\MatryoshkaConnectedResourceAbstractFactory',
                     ],
-                    'factories'  => [
+                    'factories' => [
                         'Matryoshka\Model\ModelManager' => 'Matryoshka\Model\Service\ModelManagerFactory',
                         'Matryoshka\Model\ResultSet\PrototypeStrategy\ServiceLocatorStrategy' => 'Matryoshka\Model\ResultSet\PrototypeStrategy\Service\ServiceLocatorStrategyFactory',
                         'HydratorManager' => 'Zend\Mvc\Service\HydratorManagerFactory',
@@ -194,8 +205,12 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
                         'Matryoshka\Model\ResultSet\HydratingResultSet' => 'Matryoshka\Model\ResultSet\HydratingResultSet',
                     ],
                     'services' => [
-                        'Matryoshka\Criteria\Test1' => $this->getMockForAbstractClass('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria'),
-                        'Matryoshka\Criteria\CollectionTest1' =>  $this->getMock('Matryoshka\Model\Criteria\PaginableCriteriaInterface')
+                        'Matryoshka\Criteria\Test1' => $this->getMockForAbstractClass(
+                            'Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria'
+                        ),
+                        'Matryoshka\Criteria\CollectionTest1' => $this->getMock(
+                            'Matryoshka\Model\Criteria\PaginableCriteriaInterface'
+                        )
                     ],
                     'shared' => [
                         'Matryoshka\Model\ModelManager' => true,
@@ -222,7 +237,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
         $serviceManager->setService('Config', $config);
         /* @var $mm \Matryoshka\Model\ModelManager */
         $mm = $serviceManager->get('Matryoshka\Model\ModelManager');
-        $mock =  $this->getMockBuilder('Matryoshka\Model\Model')
+        $mock = $this->getMockBuilder('Matryoshka\Model\Model')
             ->disableOriginalConstructor()
             ->getMock();
         $mm->setService('Matryoshka\Model', $mock);

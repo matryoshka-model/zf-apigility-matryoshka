@@ -1,12 +1,19 @@
 <?php
+/**
+ * Matryoshka Connected Resource for Apigility
+ *
+ * @link        https://github.com/matryoshka-model/zf-apigility-matryoshka
+ * @copyright   Copyright (c) 2015, Ripa Club
+ * @license     http://opensource.org/licenses/BSD-2-Clause Simplified BSD License
+ */
 namespace Matryoshka\Apigility;
 
+use Matryoshka\Apigility\Exception\RuntimeException;
 use Matryoshka\Apigility\Model\MatryoshkaConnectedResourceInterface;
 use Matryoshka\Model\AbstractModel;
 use Matryoshka\Model\Object\ObjectManager;
 use Zend\ServiceManager\AbstractFactoryInterface;
 use Zend\ServiceManager\AbstractPluginManager;
-use Zend\ServiceManager\Exception\ServiceNotCreatedException;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Stdlib\Hydrator\HydratorAwareInterface;
 use Zend\Stdlib\Hydrator\HydratorInterface;
@@ -129,15 +136,15 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
      *
      * @param ServiceLocatorInterface $serviceManager
      * @return ObjectManager
-     * @throws ServiceNotCreatedException
+     * @throws RuntimeException
      */
     protected function getObjectManagerFromConfig(ServiceLocatorInterface $serviceManager)
     {
         if ($serviceManager->has('Matryoshka\Model\Object\ObjectManager')) {
             return $serviceManager->get('Matryoshka\Model\Object\ObjectManager');
         }
-        // FIXME: wrong exception -> needed a ServiceNotFoundException
-        throw new ServiceNotCreatedException(
+
+        throw new RuntimeException(
             sprintf(
                 'Unable to obtain instance of "%s"',
                 'Matryoshka\Model\Object\ObjectManager'
@@ -150,7 +157,7 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
      *
      * @param array $config
      * @param $requestedName
-     * @throws ServiceNotCreatedException
+     * @throws RuntimeException
      * @return string
      */
     protected function getResourceClassFromConfig(array $config, $requestedName)
@@ -162,11 +169,10 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
                 !is_subclass_of($resourceClass, 'Matryoshka\Apigility\Model\MatryoshkaConnectedResourceInterface')
             )
         ) {
-            // FIXME: wrong exception
-            throw new ServiceNotCreatedException(
+            throw new RuntimeException(
                 sprintf(
-                    'Unable to create instance for service "%s"; '
-                    . 'resource class "%s" cannot be found or does not extend "%s"',
+                    'Unable to create instance for service "%s"; ' .
+                    'resource class "%s" cannot be found or does not extend "%s"',
                     $requestedName,
                     $resourceClass,
                     $this->resourceClass
@@ -182,16 +188,16 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
      *
      * @param array $config
      * @param ServiceLocatorInterface $services
-     * @throws ServiceNotCreatedException
+     * @throws RuntimeException
      * @return AbstractModel
      */
-    protected function getModelServiceFromConfig(array $config, ServiceLocatorInterface $services, $requestedName)
+    protected function getModelServiceFromConfig(array $config, ServiceLocatorInterface $services)
     {
         if ($services->get('Matryoshka\Model\ModelManager')->has($config['model'])) {
             return $services->get('Matryoshka\Model\ModelManager')->get($config['model']);
         }
-        // FIXME: wrong exception -> needed a ServiceNotFoundException
-        throw new ServiceNotCreatedException(
+
+        throw new RuntimeException(
             sprintf(
                 'Unable to create instance for service "%s"',
                 $config['model']
@@ -204,15 +210,14 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
      *
      * @param array $config
      * @param $requestedName
-     * @throws ServiceNotCreatedException
+     * @throws RuntimeException
      * @return string
      */
     protected function getCollectionFromConfig(array $config, $requestedName)
     {
         $collection = isset($config['collection_class']) ? $config['collection_class'] : 'Zend\Paginator\Paginator';
         if (!class_exists($collection)) {
-            // FIXME: wrong exception
-            throw new ServiceNotCreatedException(
+            throw new RuntimeException(
                 sprintf(
                     'Unable to create instance for service "%s"; collection class "%s" cannot be found',
                     $requestedName,
@@ -229,7 +234,7 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
      * @param ServiceLocatorInterface $serviceLocator
      * @param $name
      * @return HydratorInterface
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     protected function getHydratorByName(ServiceLocatorInterface $serviceLocator, $name)
     {
@@ -238,8 +243,7 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
         }
 
         if (!$serviceLocator->has($name)) {
-            // FIXME: wrong exception -> needed a ServiceNotFoundException
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 sprintf(
                     'Instance %s not config in the Hydrator Manager',
                     $name
