@@ -22,6 +22,7 @@ use Zend\Stdlib\Hydrator\HydratorInterface;
 use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
 use Matryoshka\Apigility\Exception\RuntimeException;
+use Matryoshka\Model\ResultSet\PrototypeStrategy\PrototypeStrategyInterface;
 
 /**
  * Class MatryoshkaConnectedResource
@@ -35,6 +36,11 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      * @var AbstractCriteria
      */
     protected $entityCriteria;
+
+    /**
+     * @var PrototypeStrategyInterface
+     */
+    protected $prototypeStrategy;
 
     /**
      * @var PaginableCriteriaInterface
@@ -95,6 +101,24 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     }
 
     /**
+     * @param PrototypeStrategyInterface $strategy
+     * @return $this
+     */
+    public function setPrototypeStrategy(PrototypeStrategyInterface $strategy)
+    {
+        $this->prototypeStrategy = $strategy;
+        return $this;
+    }
+
+    /**
+     * @return PrototypeStrategyInterface
+     */
+    public function getPrototypeStrategy()
+    {
+        return $this->prototypeStrategy;
+    }
+
+    /**
      * @return PaginableCriteriaInterface
      */
     public function getCollectionCriteria()
@@ -144,15 +168,11 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     {
         $data = $this->retrieveData($data);
 
-        $object = null;
-        $entityClass = $this->getEntityClass();
-
-        if ($entityClass) {
-            if ($this->objectManager->has($entityClass)) {
-                $object = $this->objectManager->get($entityClass);
-            }
-        }
-        if (!$object) {
+        if ($prototypeStrategy = $this->getPrototypeStrategy()) {
+            $object = $prototypeStrategy->createObject($this->model->getObjectPrototype(), $data);
+        } else if ($entityClass = $this->getEntityClass()) {
+            $object = $this->objectManager->get($entityClass);
+        } else {
             $object = $this->model->create();
         }
 
