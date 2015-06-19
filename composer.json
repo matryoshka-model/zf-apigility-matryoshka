@@ -1,51 +1,52 @@
 {
-    "name": "matryoshka-model/zf-apigility-matryoshka",
-    "description": "Matryoshka connected resource for Apigility",
-    "license": "BSD-2-Clause",
-    "homepage": "http://github.com/matryoshka-model/zf-apigility-matryoshka",
-    "require": {
-        "php": ">=5.4.0",
-        "ripaclub/imgman": "~0.4.0",
-        "zfcampus/zf-api-problem": "~1.0",
-        "zfcampus/zf-rest": "~1.1",
-        "matryoshka-model/zf2-matryoshka-module": "v0.6.0"
+  "name": "matryoshka-model/zf-apigility-matryoshka",
+  "description": "Matryoshka connected resource for Apigility",
+  "license": "BSD-2-Clause",
+  "homepage": "http://github.com/matryoshka-model/zf-apigility-matryoshka",
+  "require": {
+    "php": ">=5.4.0",
+    "zendframework/zend-stdlib": "~2.5",
+    "zendframework/zend-servicemanager": "~2.5",
+    "matryoshka-model/zf2-matryoshka-module": "~0.6",
+    "zfcampus/zf-api-problem": "~1.0",
+    "zfcampus/zf-rest": "~1.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~4.7",
+    "satooshi/php-coveralls": "dev-master"
+  },
+  "authors": [
+    {
+      "name": "Antonio Visalli",
+      "email": "antonino.visalli@gmail.com",
+      "homepage": "http://github.com/visa4"
     },
-    "require-dev": {
-        "phpunit/phpunit": "~4.7",
-        "satooshi/php-coveralls": "dev-master"
+    {
+      "name": "Leonardo Di Donato",
+      "email": "leodidonato@gmail.com",
+      "homepage": "http://github.com/leodido"
     },
-    "authors": [
-        {
-            "name": "Antonio Visalli",
-            "email": "antonino.visalli@gmail.com",
-            "homepage": "http://github.com/visa4"
-        },
-        {
-            "name": "Leonardo Di Donato",
-            "email": "leodidonato@gmail.com",
-            "homepage": "http://github.com/leodido"
-        },
-        {
-            "name": "Leonardo Grasso",
-            "email": "me@leonardograsso.com",
-            "homepage": "http://github.com/leogr"
-        }
-    ],
-    "autoload": {
-        "psr-4": {
-            "Matryoshka\\Apigility\\": "src",
-            "MatryoshkaTest\\Apigility\\": "tests"
-        },
-        "classmap": [
-            "./Module.php"
-        ]
+    {
+      "name": "Leonardo Grasso",
+      "email": "me@leonardograsso.com",
+      "homepage": "http://github.com/leogr"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Matryoshka\\Apigility\\": "src",
+      "MatryoshkaTest\\Apigility\\": "tests"
     },
-    "keywords": [
-        "api",
-        "apigility",
-        "rest",
-        "resource",
-        "connected resource",
-        "matryoshka"
+    "classmap": [
+      "./Module.php"
     ]
+  },
+  "keywords": [
+    "api",
+    "apigility",
+    "rest",
+    "resource",
+    "connected resource",
+    "matryoshka"
+  ]
 }

@@ -8,7 +8,6 @@ use Matryoshka\Model\ModelAwareInterface;
 use Matryoshka\Model\ModelAwareTrait;
 use Matryoshka\Model\Object\ActiveRecord\ActiveRecordInterface;
 use Matryoshka\Model\Object\ObjectManager;
-use SoloSDK\Exception\RuntimeException;
 use Zend\Stdlib\Hydrator\ClassMethods;
 use Zend\Stdlib\Hydrator\HydratorAwareInterface;
 use Zend\Stdlib\Hydrator\HydratorAwareTrait;
@@ -17,12 +16,12 @@ use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
 
 /**
- * @method AbstractModel getModel()
+ * Class MatryoshkaConnectedResource
  *
+ * @method AbstractModel getModel()
  */
 class MatryoshkaConnectedResource extends AbstractResourceListener implements MatryoshkaConnectedResourceInterface
 {
-
     use ModelAwareTrait;
     use HydratorAwareTrait;
 

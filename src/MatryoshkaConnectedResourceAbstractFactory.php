@@ -2,7 +2,6 @@
 namespace Matryoshka\Apigility;
 
 use Matryoshka\Model\AbstractModel;
-use Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria;
 use Zend\ServiceManager\AbstractFactoryInterface;
 use Zend\ServiceManager\AbstractPluginManager;
 use Zend\ServiceManager\Exception\ServiceNotCreatedException;
@@ -10,9 +9,11 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Stdlib\Hydrator\HydratorAwareInterface;
 use Zend\Stdlib\Hydrator\HydratorInterface;
 
+/**
+ * Class MatryoshkaConnectedResourceAbstractFactory
+ */
 class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInterface
 {
-
     /**
      * Config
      *
