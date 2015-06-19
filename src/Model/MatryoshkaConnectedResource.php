@@ -1,4 +1,11 @@
 <?php
+/**
+ * Matryoshka Connected Resource for Apigility
+ *
+ * @link        https://github.com/matryoshka-model/zf-apigility-matryoshka
+ * @copyright   Copyright (c) 2015, Ripa Club
+ * @license     http://opensource.org/licenses/BSD-2-Clause Simplified BSD License
+ */
 namespace Matryoshka\Apigility\Model;
 
 use Matryoshka\Model\AbstractModel;
@@ -14,15 +21,14 @@ use Zend\Stdlib\Hydrator\HydratorAwareTrait;
 use Zend\Stdlib\Hydrator\HydratorInterface;
 use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
+use Matryoshka\Apigility\Exception\RuntimeException;
 
 /**
  * Class MatryoshkaConnectedResource
  *
- * @method AbstractModel getModel()
  */
 class MatryoshkaConnectedResource extends AbstractResourceListener implements MatryoshkaConnectedResourceInterface
 {
-    use ModelAwareTrait;
     use HydratorAwareTrait;
 
     /**
@@ -39,6 +45,11 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      * @var HydratorInterface
      */
     protected $collectionCriteriaHydrator;
+
+    /**
+     * @var AbstractModel
+     */
+    protected $model;
 
     /**
      * @var ObjectManager
@@ -68,7 +79,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     public function getEntityCriteria()
     {
         if (!$this->entityCriteria) {
-            throw new \RuntimeException('Entity criteria required');
+            throw new RuntimeException('Entity criteria required');
         }
         return $this->entityCriteria;
     }
@@ -89,7 +100,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     public function getCollectionCriteria()
     {
         if (!$this->collectionCriteria) {
-            throw new \RuntimeException('Collection criteria required');
+            throw new RuntimeException('Collection criteria required');
         }
         return $this->collectionCriteria;
     }
@@ -142,20 +153,20 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
             }
         }
         if (!$object) {
-            $object = $this->getModel()->create();
+            $object = $this->model->create();
         }
 
         $this->hydrateObject($data, $object);
 
         if ($object instanceof ActiveRecordInterface) {
             if ($object instanceof ModelAwareInterface) {
-                $object->setModel($this->getModel());
+                $object->setModel($this->model);
             }
             $object->save();
             return $object;
         }
 
-        throw new \RuntimeException('Misconfigured connected resource: the object is not an instance of ActiveRecordInterface', 500);
+        throw new RuntimeException('Misconfigured connected resource: the object is not an instance of ActiveRecordInterface', 500);
     }
 
     /**
@@ -163,10 +174,10 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function delete($id)
     {
-        $result = $this->getModel()->delete(
-            $this->entityCriteria->setId($id)
+        $result = $this->model->delete(
+            $this->getEntityCriteria()->setId($id)
         );
-        //$result === null indicates no information about operation completation
+        //when $result is null means we have no information about operation completation
         return ($result === null || $result > 0);
     }
 
@@ -175,8 +186,8 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function fetch($id)
     {
-        $object = $this->getModel()->find(
-            $this->entityCriteria->setId($id)
+        $object = $this->model->find(
+            $this->getEntityCriteria()->setId($id)
         )->current();
 
         if (!$object) {
@@ -191,15 +202,19 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function fetchAll($params = [])
     {
-        $criteria = $this->collectionCriteria; // TODO: renderla required sempre?
+        // when no params and no collectionCriteria have been set
+        // then the model default criteria is used
+        $criteria = $this->collectionCriteria;
         $params = (array) $params;
         if (!empty($params)) {
-            $criteria = $this->getCollectionCriteria(); // required
+            // when params are present, collectionCriteria is mandatory
+            // because we need to hydrate the criteria with current params
+            $criteria = $this->getCollectionCriteria();
             $hydrator = $this->getCollectionCriteriaHydrator();
             $hydrator->hydrate($params, $criteria);
         }
 
-        $paginatorAdapter = $this->getModel()->getPaginatorAdapter($criteria);
+        $paginatorAdapter = $this->model->getPaginatorAdapter($criteria);
         $collectionClassName = $this->getCollectionClass();
         return new $collectionClassName($paginatorAdapter);
     }
@@ -210,15 +225,18 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     public function update($id, $data)
     {
         $data = $this->retrieveData($data);
+
         $object = $this->fetch($id);
         if ($object instanceof ApiProblem) {
             return $object;
         }
 
         $this->hydrateObject($data, $object);
+
         if ($object instanceof ModelAwareInterface) {
-            $object->setModel($this->getModel());
+            $object->setModel($this->model);
         }
+
         $object->save();
         return $object;
     }
@@ -261,10 +279,8 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
         if (!$hydrator) {
             if ($object instanceof HydratorAwareInterface && $object->getHydrator()) {
                 $hydrator = $object->getHydrator();
-            } elseif ($this->getModel()->getHydrator()) {
-                $hydrator = $this->getModel()->getHydrator();
             } else {
-                throw new \RuntimeException('Cannot get a hydrator');
+                throw new RuntimeException('Cannot get a hydrator');
             }
         }
         $hydrator->hydrate($data, $object);
