@@ -95,37 +95,42 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
 
         $config = $this->getConfig($serviceLocator)[$requestedName];
         $model = $this->getModelServiceFromConfig($config, $serviceLocator, $requestedName);
-        $objectManager = $this->getObjectManagerFromConfig($serviceLocator);
         $collectionClass = $this->getCollectionFromConfig($config, $requestedName);
 
         $resourceClass = $this->getResourceClassFromConfig($config, $requestedName);
 
         /* @var $resource MatryoshkaConnectedResourceInterface */
-        $resource = new $resourceClass($model, $objectManager, $collectionClass);
+        $resource = new $resourceClass($model);
 
-        if (isset($config['entity_class'])) {
+
+        // Entity setup
+        if (!empty($config['entity_class'])) {
             $resource->setEntityClass($config['entity_class']);
+            $resource->setObjectManager($this->getObjectManagerFromConfig($serviceLocator));
         }
 
-        if (isset($config['entity_criteria'])) {
+        if (!empty($config['entity_criteria'])) {
             $resource->setEntityCriteria($serviceLocator->get($config['entity_criteria']));
         }
 
-        if (isset($config['collection_criteria'])) {
+        if (!empty($config['hydrator'])) {
+            $resource->setHydrator($this->getHydratorByName($serviceLocator, $config['hydrator']));
+        }
+
+        // Collection setup
+        $resource->setCollectionClass($this->getCollectionFromConfig($config, $requestedName));
+
+        if (!empty($config['collection_criteria'])) {
             $resource->setCollectionCriteria($serviceLocator->get($config['collection_criteria']));
         }
 
-        if (isset($config['collection_criteria_hydrator'])) {
+        if (!empty($config['collection_criteria_hydrator'])) {
             $resource->setCollectionCriteriaHydrator(
                 $this->getHydratorByName(
                     $serviceLocator,
                     $config['collection_criteria_hydrator']
                 )
             );
-        }
-
-        if ($resource instanceof HydratorAwareInterface && isset($config['hydrator'])) {
-            $resource->setHydrator($this->getHydratorByName($serviceLocator, $config['hydrator']));
         }
 
         return $resource;
@@ -166,16 +171,16 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
         if ($resourceClass !== $this->resourceClass &&
             (
                 !class_exists($resourceClass) ||
-                !is_subclass_of($resourceClass, 'Matryoshka\Apigility\Model\MatryoshkaConnectedResourceInterface')
+                !is_subclass_of($resourceClass, MatryoshkaConnectedResourceInterface::class)
             )
         ) {
             throw new RuntimeException(
                 sprintf(
                     'Unable to create instance for service "%s"; ' .
-                    'resource class "%s" cannot be found or does not extend "%s"',
+                    'resource class "%s" does not exist or does not implement "%s"',
                     $requestedName,
                     $resourceClass,
-                    $this->resourceClass
+                    MatryoshkaConnectedResourceInterface::class
                 )
             );
         }

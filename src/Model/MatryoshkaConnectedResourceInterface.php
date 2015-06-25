@@ -12,12 +12,21 @@ use Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria;
 use Matryoshka\Model\Criteria\PaginableCriteriaInterface;
 use Zend\Stdlib\Hydrator\HydratorAwareInterface;
 use Zend\Stdlib\Hydrator\HydratorInterface;
+use Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyAwareInterface;
+use Matryoshka\Model\ModelAwareInterface;
+use Matryoshka\Model\Object\ObjectManager;
 
 /**
  * Interface MatryoshkaConnectedResourceInterface
  */
-interface MatryoshkaConnectedResourceInterface extends HydratorAwareInterface
+interface MatryoshkaConnectedResourceInterface extends ModelAwareInterface, HydratorAwareInterface, PrototypeStrategyAwareInterface
 {
+
+    /**
+     * @param ObjectManager $objectManager
+     */
+    public function setObjectManager(ObjectManager $objectManager);
+
     /**
      * Set the entity class name
      *
@@ -34,6 +43,11 @@ interface MatryoshkaConnectedResourceInterface extends HydratorAwareInterface
      * @return $this
      */
     public function setEntityCriteria(AbstractCriteria $criteria);
+
+    /**
+     * @param string $className
+     */
+    public function setCollectionClass($className);
 
     /**
      * Set the collection (paginable) criteria

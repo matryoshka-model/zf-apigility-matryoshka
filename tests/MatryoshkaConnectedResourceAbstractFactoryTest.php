@@ -69,7 +69,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
                         'collection_criteria' => 'Matryoshka\Criteria\CollectionTest1',
                         'hydrator' => 'objectproperty',
                         'collection_criteria_hydrator' => 'objectproperty',
-                        'resource_class' => 'MatryoshkaTest\Apigility\TestAsset\Resource'
+                        'resource_class' => 'Matryoshka\Apigility\Model\MatryoshkaConnectedResource'
                     ],
                     'MatryoshkaApigility\ConnectedResource2' => [],
                     'MatryoshkaApigility\ConnectedResource3' => [

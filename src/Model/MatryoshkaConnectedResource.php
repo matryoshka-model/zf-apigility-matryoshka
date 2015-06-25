@@ -22,6 +22,9 @@ use Zend\Stdlib\Hydrator\HydratorAwareTrait;
 use Zend\Stdlib\Hydrator\HydratorInterface;
 use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
+use Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyAwareTrait;
+use Matryoshka\Model\ModelAwareTrait;
+use Matryoshka\Model\ModelInterface;
 
 /**
  * Class MatryoshkaConnectedResource
@@ -29,17 +32,19 @@ use ZF\Rest\AbstractResourceListener;
  */
 class MatryoshkaConnectedResource extends AbstractResourceListener implements MatryoshkaConnectedResourceInterface
 {
+    use ModelAwareTrait;
     use HydratorAwareTrait;
+    use PrototypeStrategyAwareTrait;
+
+    /**
+     * The collection_class config for the calling controller zf-rest config
+     */
+    protected $collectionClass = 'Zend\Paginator\Paginator';
 
     /**
      * @var AbstractCriteria
      */
     protected $entityCriteria;
-
-    /**
-     * @var PrototypeStrategyInterface
-     */
-    protected $prototypeStrategy;
 
     /**
      * @var PaginableCriteriaInterface
@@ -52,11 +57,6 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     protected $collectionCriteriaHydrator;
 
     /**
-     * @var AbstractModel
-     */
-    protected $model;
-
-    /**
      * @var ObjectManager
      */
     protected $objectManager;
@@ -64,18 +64,32 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     /**
      * Ctor
      *
-     * @param AbstractModel $model
-     * @param ObjectManager $objectManager
-     * @param string $collectionClass
+     * @param ModelInterface $model
      */
-    public function __construct(
-        AbstractModel $model,
-        ObjectManager $objectManager,
-        $collectionClass = 'Zend\Paginator\Paginator'
-    ) {
-        $this->model = $model;
+    public function __construct(ModelInterface $model)
+    {
+        $this->setModel($model);
+    }
+
+    /**
+     * @param ObjectManager $objectManager
+     * @return $this
+     */
+    public function setObjectManager(ObjectManager $objectManager)
+    {
         $this->objectManager = $objectManager;
-        $this->setCollectionClass($collectionClass);
+        return $this;
+    }
+
+    /**
+     * @return ObjectManager
+     */
+    public function getObjectManager()
+    {
+        if (!$this->objectManager) {
+            throw new RuntimeException('ObjectManager required');
+        }
+        return $this->objectManager;
     }
 
     /**
@@ -97,24 +111,6 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     {
         $this->entityCriteria = $criteria;
         return $this;
-    }
-
-    /**
-     * @param PrototypeStrategyInterface $strategy
-     * @return $this
-     */
-    public function setPrototypeStrategy(PrototypeStrategyInterface $strategy)
-    {
-        $this->prototypeStrategy = $strategy;
-        return $this;
-    }
-
-    /**
-     * @return PrototypeStrategyInterface
-     */
-    public function getPrototypeStrategy()
-    {
-        return $this->prototypeStrategy;
     }
 
     /**
@@ -167,12 +163,10 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     {
         $data = $this->retrieveData($data);
 
-        if ($prototypeStrategy = $this->getPrototypeStrategy()) {
-            $object = $prototypeStrategy->createObject($this->model->getObjectPrototype(), $data);
-        } elseif ($entityClass = $this->getEntityClass()) {
-            $object = $this->objectManager->get($entityClass);
+        if ($entityClass = $this->getEntityClass()) {
+            $object = $this->getObjectManager()->get($entityClass);
         } else {
-            $object = $this->model->create();
+            $object = $this->getPrototypeStrategy()->createObject($this->model->getObjectPrototype(), $data);
         }
 
         $this->hydrateObject($data, $object);
@@ -188,7 +182,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
         throw new RuntimeException(
             sprintf(
                 'Misconfigured connected resource: the object is not an instance of "%s"',
-                'Matryoshka\Model\Object\ActiveRecord\ActiveRecordInterface'
+                ActiveRecordInterface::class
             ),
             500
         );
@@ -199,7 +193,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function delete($id)
     {
-        $result = $this->model->delete(
+        $result = $this->getModel()->delete(
             $this->getEntityCriteria()->setId($id)
         );
         //when $result is null means we have no information about operation completation
@@ -211,7 +205,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function fetch($id)
     {
-        $object = $this->model->find(
+        $object = $this->getModel()->find(
             $this->getEntityCriteria()->setId($id)
         )->current();
 
@@ -239,7 +233,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
             $hydrator->hydrate($params, $criteria);
         }
 
-        $paginatorAdapter = $this->model->getPaginatorAdapter($criteria);
+        $paginatorAdapter = $this->getModel()->getPaginatorAdapter($criteria);
         $collectionClassName = $this->getCollectionClass();
         return new $collectionClassName($paginatorAdapter);
     }
@@ -259,7 +253,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
         $this->hydrateObject($data, $object);
 
         if ($object instanceof ModelAwareInterface) {
-            $object->setModel($this->model);
+            $object->setModel($this->getModel());
         }
 
         $object->save();
