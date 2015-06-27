@@ -1,0 +1,37 @@
+sudo: false
+language: php
+matrix:
+  fast_finish: true
+  include:
+  - php: 5.5
+  - php: 5.6
+  - php: 7
+  - php: hhvm
+  allow_failures:
+  - php: 7
+  - php: hhvm
+before_script:
+- composer self-update
+- composer config --global github-oauth.github.com ${GH_TOKEN}
+- composer install
+install:
+- composer self-update
+- composer install
+script:
+- vendor/bin/phpunit
+after_script:
+- php vendor/bin/coveralls
+notifications:
+  webhooks:
+    urls:
+    - https://webhooks.gitter.im/e/70b21e421c7b6b4d20a8
+    on_success: change
+  email: false
+  slack:
+    secure: tM7Ebi3Ge1NhVNaqTrUk/Or4tUw+2z3o1wom/TU+LQlKMxC8PRLfLGlXH0MG1MEBk+8zEUPKjs3lIqZ9LKsJV5IJzGLFgzU+Qdcrhtr9Okp7n3K/TznQ5yUDTLpZnhMoYJlbiH1/E4s4xaLNg0diOrgHJu4XahrN8SpgW8jz0gCRmcabqBAx9BllOa468dvEzi9UVDlS9TbBlROicD1x6aJAag8H/ap3mtTs1om55jRIGY9HH5gSiO9ZdqoFxyTnnOGvxg3ENftsRJK/76Bpbgwh0hgL+zk4UNfIAEQqLzK0j0KAFM6RoRH3KmU4fIBk+2nlMstteH0CRcZjyPCWSr7Xn1XNpVkzJIGcwmIAw3Lu2q/rqylDIStiN5oPEHH/fr52B41Ne/QXz9Fhfm7isMOoNA4F8n2xz+7lmFV89OwRZ6qgTyUed+MYn4xnbj2HOvgm9Cx5v/eTFrZaPNx59JvngY1Ba/WUVIwfAbYgkvZ7aXmDwvYeb7u+HPLsL6TK5QG1dWU8/bF4lnfMx9RFg7sSRLgr/kFVd9EZ+J1Verq0CuOloL+To4VwRAd94fEpxkRArKdzZyHimuEMbL+qKJ2gRHl9HE+2TdaMR5hMx7hsTS63ldERDWk9UByq3xcxmPXpVF9i2eu8Z0u9V+g2xnH2LZpBAKUHbHpSyOrj1mI=
+cache:
+  directories:
+  - "$HOME/.composer/cache"
+env:
+  global:
+    secure: sU01nvVFnp5dva2/dgxxY4r+l+tst3pQMlacgsoYzqe50NDD9ehQV981bqwUkzikq50YORq00NoeiVt71VClfFrviaglQi7GlLra0s0RftLsCsuTN5hKqrxBUBBTAZpEUS/YSAAUjFPnuIFau9g22UQs+ho9qn4dzzFiZXNZXqaMXPnGrrs/61iPn5QsDjrTG239pu+0sBdK3nGP5s+nLT9As2ddeXSAnro6bdrrFOBFDmmZ2qz3FVkWuCN13GrPfqxL1LV/YAlKvbPo5ERL5ZAakOYZ83TK2X+LiNihxbPbMxZChPFwKT9u7KIYGlJKGSQCsQlR0q0ltA11rHaVzuE9zeU+UUeHHKxq81NoTfQ3BFVu1QN172qYNdpdLUlLoASfjpHNU98/vjCIONrXotavcmBy59yjjS7CSTB2sItu3zvsDDFMZ9dyL7hdTUjAxo5Fh/zWrCoGKJ+GsCXuHRqWVnxF61DBA0p5Pwy7KsUmTWCqkVWUYIk9ie963v2YxpaZczb4t/gC2sRcHDNToPOPcG42/mzgI9YOC1QsL7tuYzioxK7rLxl7YoFEnKiEgMzyACW0EZ7ZC6gOzBhDVeJemCX12CEW7O0RdpygDIteojMpHHD2G52YeM5zVl7hiPUUic16xZF5Ui9WdSYQsQkkYZn7RXfRLiQD4Bea5zI=
