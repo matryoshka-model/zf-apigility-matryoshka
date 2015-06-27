@@ -4,7 +4,7 @@
   "license": "BSD-2-Clause",
   "homepage": "http://github.com/matryoshka-model/zf-apigility-matryoshka",
   "require": {
-    "php": ">=5.4.0",
+    "php": ">=5.5.0",
     "zendframework/zend-stdlib": "~2.5",
     "zendframework/zend-servicemanager": "~2.5",
     "matryoshka-model/zf2-matryoshka-module": "0.7.*@dev",
