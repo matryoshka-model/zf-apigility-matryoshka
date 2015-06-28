@@ -1,6 +1,8 @@
 Matryoshka connected resource
 =============================
 
+> Matryoshka connected resource for Apigility
+
 **WIP**
 
 ---
