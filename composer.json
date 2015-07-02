@@ -48,6 +48,7 @@
     "rest",
     "resource",
     "connected resource",
-    "matryoshka"
+    "matryoshka",
+    "model"
   ]
 }
