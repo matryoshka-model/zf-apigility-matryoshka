@@ -23,17 +23,34 @@ interface MatryoshkaConnectedResourceInterface extends ModelAwareInterface, Hydr
 {
 
     /**
+     * Set the object manager instance
+     *
      * @param ObjectManager $objectManager
+     * @return $this
      */
     public function setObjectManager(ObjectManager $objectManager);
 
     /**
+     * Get the object manager instance
+     *
+     * @return ObjectManager
+     * @throws RuntimeException
+     */
+    public function getObjectManager();
+
+
+    /**
      * Set the entity class name
      *
-     * @param $className
+     * @param string $className
      * @return $this
      */
     public function setEntityClass($className);
+
+    /**
+     * @return string
+     */
+    public function getEntityClass();
 
     /**
      * Set the entity criteria
@@ -45,9 +62,20 @@ interface MatryoshkaConnectedResourceInterface extends ModelAwareInterface, Hydr
     public function setEntityCriteria(AbstractCriteria $criteria);
 
     /**
+     * @return AbstractCriteria
+     */
+    public function getEntityCriteria();
+
+    /**
      * @param string $className
+     * @return $this
      */
     public function setCollectionClass($className);
+
+    /**
+     * @return string
+     */
+    public function getCollectionClass();
 
     /**
      * Set the collection (paginable) criteria
@@ -57,6 +85,13 @@ interface MatryoshkaConnectedResourceInterface extends ModelAwareInterface, Hydr
      * @return $this
      */
     public function setCollectionCriteria(PaginableCriteriaInterface $criteria);
+
+    /**
+     * Get the collection (paginable) criteria
+     *
+     * @return PaginableCriteriaInterface
+     */
+    public function getCollectionCriteria();
 
     /**
      * Set the hydrator of the collection criteria

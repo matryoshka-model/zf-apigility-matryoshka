@@ -96,7 +96,7 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
     /**
      * @expectedException \RuntimeException
      */
-    public function testHydratorObjectException()
+    public function testHydrateObjectException()
     {
         $reflection = new \ReflectionClass(get_class($this->resource));
         $method = $reflection->getMethod('hydrateObject');
@@ -106,9 +106,9 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @depends testHydratorObjectException
+     * @depends testHydrateObjectException
      */
-    public function testHydratorObject()
+    public function testHydrateObject()
     {
         $reflection = new \ReflectionClass(get_class($this->resource));
         $method = $reflection->getMethod('hydrateObject');
