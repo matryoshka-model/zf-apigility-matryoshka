@@ -9,6 +9,8 @@
 namespace MatryoshkaTest\Apigility\Model;
 
 use Matryoshka\Apigility\Model\MatryoshkaConnectedResource;
+use Matryoshka\Model\ModelAwareInterface;
+use Matryoshka\Model\Object\ActiveRecord\ActiveRecordInterface;
 use MatryoshkaTest\Apigility\Asset\HydratorAwareAsset;
 use PHPUnit_Framework_TestCase;
 use Zend\InputFilter\InputFilter;
@@ -26,6 +28,7 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
     public function setUp()
     {
+        /** @var $model \Matryoshka\Model\ModelInterface */
         $model = $this->getMock('Matryoshka\Model\AbstractModel');
         $this->resource = new MatryoshkaConnectedResource($model);
     }
@@ -36,7 +39,7 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \RuntimeException
+     * @expectedException \Matryoshka\Apigility\Exception\RuntimeException
      */
     public function testGetObjectManagerException()
     {
@@ -62,7 +65,7 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
     /**
      * @depends testGetSetEntityCriteria
-     * @expectedException \RuntimeException
+     * @expectedException \Matryoshka\Apigility\Exception\RuntimeException
      */
     public function testGetEntityCriteriaException()
     {
@@ -78,7 +81,7 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
     /**
      * @depends testGetSetCollectionCriteria
-     * @expectedException \RuntimeException
+     * @expectedException \Matryoshka\Apigility\Exception\RuntimeException
      */
     public function testGetCollectionCriteriaException()
     {
@@ -94,7 +97,7 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \RuntimeException
+     * @expectedException \Matryoshka\Apigility\Exception\RuntimeException
      */
     public function testHydrateObjectException()
     {
@@ -264,10 +267,81 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \RuntimeException
+     * @expectedException \Matryoshka\Apigility\Exception\RuntimeException
      */
-    public function testCreateException()
+    public function testCreateShouldThrowRuntimeExceptionWhenCannotCreateAnActiveRecordInterfaceObject()
     {
+        $prototypeStratey = $this->getMock('Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyInterface');
+        $prototypeStratey->method('createObject')->willReturn(new \stdClass);
+
+        $this->resource->setHydrator(new ClassMethods);
+        $this->resource->setPrototypeStrategy($prototypeStratey);
         $this->resource->create([]);
+    }
+
+    public function testCreate()
+    {
+        $object = $this->getMock('\Matryoshka\Model\Object\ActiveRecord\ActiveRecordInterface');
+
+        $prototypeStratey = $this->getMock('Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyInterface');
+        $prototypeStratey->method('createObject')->willReturn($object);
+
+        $this->resource->setHydrator(new ClassMethods);
+        $this->resource->setPrototypeStrategy($prototypeStratey);
+        $result = $this->resource->create([]);
+
+        $this->assertInstanceOf(
+            ActiveRecordInterface::class,
+            $result
+        );
+
+        $this->assertSame($object, $result);
+    }
+
+    public function testCreateWithEntityClass()
+    {
+        $object = $this->getMock('\Matryoshka\Model\Object\ActiveRecord\ActiveRecordInterface');
+
+        $objectManager = $this->getMock('Matryoshka\Model\Object\ObjectManager');
+        $objectManager->method('get')->willReturn($object);
+
+        $this->resource->setObjectManager($objectManager);
+        $this->resource->setEntityClass('TestEntityClass');
+        $this->resource->setHydrator(new ClassMethods);
+
+        $result = $this->resource->create([]);
+
+        $this->assertInstanceOf(
+            ActiveRecordInterface::class,
+            $result
+        );
+
+        $this->assertSame($object, $result);
+    }
+
+    public function testCreateModelAwareInterfaceObject()
+    {
+        $object = $this->getMock('\Matryoshka\Model\Object\ActiveRecord\AbstractActiveRecord');
+        $prototypeStratey = $this->getMock('Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyInterface');
+        $prototypeStratey->method('createObject')->willReturn($object);
+
+        $this->resource->setHydrator(new ClassMethods);
+        $this->resource->setPrototypeStrategy($prototypeStratey);
+
+        $object->expects($this->at(0))->method('setModel')->with($this->resource->getModel());
+
+        $result = $this->resource->create([]);
+
+        $this->assertInstanceOf(
+            ActiveRecordInterface::class,
+            $result
+        );
+
+        $this->assertInstanceOf(
+            ModelAwareInterface::class,
+            $result
+        );
+
+        $this->assertSame($object, $result);
     }
 }
