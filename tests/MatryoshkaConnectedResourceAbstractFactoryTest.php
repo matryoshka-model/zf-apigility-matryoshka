@@ -9,6 +9,7 @@
 namespace MatryoshkaTest\Apigility;
 
 use Matryoshka\Apigility\Exception\RuntimeException;
+use MatryoshkaTest\Apigility\Asset\FakePluginManager;
 use PHPUnit_Framework_TestCase;
 use Zend\Mvc\Service\ServiceManagerConfig;
 use Zend\ServiceManager;
@@ -33,13 +34,17 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
                     ],
                     'factories' => [
                         'Matryoshka\Model\ModelManager' => 'Matryoshka\Model\Service\ModelManagerFactory',
-                        'Matryoshka\Model\Object\ObjectManager' => 'Matryoshka\Model\Object\Service\ObjectManagerFactory',
-                        'Matryoshka\Model\ResultSet\PrototypeStrategy\ServiceLocatorStrategy' => 'Matryoshka\Model\ResultSet\PrototypeStrategy\Service\ServiceLocatorStrategyFactory',
+                        'Matryoshka\Model\Object\ObjectManager' =>
+                            'Matryoshka\Model\Object\Service\ObjectManagerFactory',
+                        'Matryoshka\Model\ResultSet\PrototypeStrategy\ServiceLocatorStrategy' =>
+                            'Matryoshka\Model\ResultSet\PrototypeStrategy\Service\ServiceLocatorStrategyFactory',
                         'HydratorManager' => 'Zend\Mvc\Service\HydratorManagerFactory',
                     ],
                     'invokables' => [
-                        'Matryoshka\Model\ResultSet\ArrayObjectResultSet' => 'Matryoshka\Model\ResultSet\ArrayObjectResultSet',
-                        'Matryoshka\Model\ResultSet\HydratingResultSet' => 'Matryoshka\Model\ResultSet\HydratingResultSet',
+                        'Matryoshka\Model\ResultSet\ArrayObjectResultSet' =>
+                            'Matryoshka\Model\ResultSet\ArrayObjectResultSet',
+                        'Matryoshka\Model\ResultSet\HydratingResultSet' =>
+                            'Matryoshka\Model\ResultSet\HydratingResultSet',
                     ],
                     'services' => [
                         'Matryoshka\Criteria\Test1' => $this->getMockForAbstractClass(
@@ -85,7 +90,6 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
                     'MatryoshkaApigility\ConnectedResource5' => [
                         'model' => 'Matryoshka\Model',
                         'entity_class' => 'Test',
-                        'hydrator' => 'objectpropertyException',
                         'collection_class' => 'Test'
                     ],
                     'MatryoshkaApigility\ConnectedResource6' => [
@@ -152,6 +156,18 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
         );
     }
 
+    public function testServiceWithAbstractPluginManagerInstance()
+    {
+        $pm = new FakePluginManager;
+        $pm->addAbstractFactory('Matryoshka\Apigility\MatryoshkaConnectedResourceAbstractFactory');
+        $pm->setServiceLocator($this->serviceManager);
+        $this->assertTrue($pm->has('MatryoshkaApigility\ConnectedResource1'));
+        $this->assertInstanceOf(
+            'Matryoshka\Apigility\Model\MatryoshkaConnectedResourceInterface',
+            $pm->get('MatryoshkaApigility\ConnectedResource1')
+        );
+    }
+
     /**
      * @expectedException RuntimeException
      */
@@ -197,12 +213,15 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
                     ],
                     'factories' => [
                         'Matryoshka\Model\ModelManager' => 'Matryoshka\Model\Service\ModelManagerFactory',
-                        'Matryoshka\Model\ResultSet\PrototypeStrategy\ServiceLocatorStrategy' => 'Matryoshka\Model\ResultSet\PrototypeStrategy\Service\ServiceLocatorStrategyFactory',
+                        'Matryoshka\Model\ResultSet\PrototypeStrategy\ServiceLocatorStrategy' =>
+                            'Matryoshka\Model\ResultSet\PrototypeStrategy\Service\ServiceLocatorStrategyFactory',
                         'HydratorManager' => 'Zend\Mvc\Service\HydratorManagerFactory',
                     ],
                     'invokables' => [
-                        'Matryoshka\Model\ResultSet\ArrayObjectResultSet' => 'Matryoshka\Model\ResultSet\ArrayObjectResultSet',
-                        'Matryoshka\Model\ResultSet\HydratingResultSet' => 'Matryoshka\Model\ResultSet\HydratingResultSet',
+                        'Matryoshka\Model\ResultSet\ArrayObjectResultSet' =>
+                            'Matryoshka\Model\ResultSet\ArrayObjectResultSet',
+                        'Matryoshka\Model\ResultSet\HydratingResultSet' =>
+                            'Matryoshka\Model\ResultSet\HydratingResultSet',
                     ],
                     'services' => [
                         'Matryoshka\Criteria\Test1' => $this->getMockForAbstractClass(
