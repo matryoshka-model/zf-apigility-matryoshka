@@ -192,4 +192,82 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
         $this->assertInstanceOf('Traversable', $this->resource->fetchAll(['test']));
     }
+
+    public function testDelete()
+    {
+        $model = $this->resource->getModel();
+        $model->method('delete')
+            ->willReturn(1);
+
+        $criteria = $this->getMock('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria');
+        $criteria->method('setId')
+            ->willReturn($criteria);
+
+        $this->resource->setEntityCriteria($criteria);
+        $this->assertTrue($this->resource->delete('test'));
+    }
+
+    public function testUpdateApiProblem()
+    {
+        $criteria = $this->getMock('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria');
+        $criteria->method('setId')
+            ->willReturn($criteria);
+
+        $model = $this->resource->getModel();
+        $model->method('find')
+            ->willReturn($this->getMock('Matryoshka\Model\ResultSet\HydratingResultSet'));
+
+        $this->resource->setEntityCriteria($criteria);
+        $this->assertInstanceOf('ZF\ApiProblem\ApiProblem', $this->resource->update('test', []));
+    }
+
+    public function testUpdate()
+    {
+        $criteria = $this->getMock('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria');
+        $criteria->method('setId')
+            ->willReturn($criteria);
+
+        $obj = $this->getMock('Matryoshka\Model\Object\ActiveRecord\AbstractActiveRecord');
+
+        $resultSet = $this->getMock('Matryoshka\Model\ResultSet\HydratingResultSet');
+        $resultSet->method('current')
+            ->willReturn($obj);
+
+        $model = $this->resource->getModel();
+        $model->method('find')
+            ->willReturn($resultSet);
+
+        $this->resource->setHydrator(new ClassMethods());
+        $this->resource->setEntityCriteria($criteria);
+        $this->assertSame($obj, $this->resource->update($obj, []));
+    }
+
+    public function testPatch()
+    {
+        $criteria = $this->getMock('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria');
+        $criteria->method('setId')
+            ->willReturn($criteria);
+
+        $obj = $this->getMock('Matryoshka\Model\Object\ActiveRecord\AbstractActiveRecord');
+
+        $resultSet = $this->getMock('Matryoshka\Model\ResultSet\HydratingResultSet');
+        $resultSet->method('current')
+            ->willReturn($obj);
+
+        $model = $this->resource->getModel();
+        $model->method('find')
+            ->willReturn($resultSet);
+
+        $this->resource->setHydrator(new ClassMethods());
+        $this->resource->setEntityCriteria($criteria);
+        $this->assertSame($obj, $this->resource->patch($obj, []));
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testCreateException()
+    {
+        $this->resource->create([]);
+    }
 }
