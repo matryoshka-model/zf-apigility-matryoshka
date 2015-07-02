@@ -9,22 +9,20 @@
 namespace Matryoshka\Apigility\Model;
 
 use Matryoshka\Apigility\Exception\RuntimeException;
-use Matryoshka\Model\AbstractModel;
 use Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria;
 use Matryoshka\Model\Criteria\PaginableCriteriaInterface;
 use Matryoshka\Model\ModelAwareInterface;
+use Matryoshka\Model\ModelAwareTrait;
+use Matryoshka\Model\ModelInterface;
 use Matryoshka\Model\Object\ActiveRecord\ActiveRecordInterface;
 use Matryoshka\Model\Object\ObjectManager;
-use Matryoshka\Model\ResultSet\PrototypeStrategy\PrototypeStrategyInterface;
+use Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyAwareTrait;
 use Zend\Stdlib\Hydrator\ClassMethods;
 use Zend\Stdlib\Hydrator\HydratorAwareInterface;
 use Zend\Stdlib\Hydrator\HydratorAwareTrait;
 use Zend\Stdlib\Hydrator\HydratorInterface;
 use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
-use Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyAwareTrait;
-use Matryoshka\Model\ModelAwareTrait;
-use Matryoshka\Model\ModelInterface;
 
 /**
  * Class MatryoshkaConnectedResource
@@ -62,9 +60,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     protected $objectManager;
 
     /**
-     * Ctor
-     *
-     * @param ModelInterface $model
+     * {@inheritdoc}
      */
     public function __construct(ModelInterface $model)
     {
@@ -72,8 +68,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     }
 
     /**
-     * @param ObjectManager $objectManager
-     * @return $this
+     * {@inheritdoc}
      */
     public function setObjectManager(ObjectManager $objectManager)
     {
@@ -82,7 +77,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     }
 
     /**
-     * @return ObjectManager
+     * {@inheritdoc}
      */
     public function getObjectManager()
     {
@@ -93,7 +88,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     }
 
     /**
-     * @return AbstractCriteria
+     * {@inheritdoc}
      */
     public function getEntityCriteria()
     {
@@ -104,8 +99,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     }
 
     /**
-     * @param AbstractCriteria $criteria
-     * @return $this
+     * {@inheritdoc}
      */
     public function setEntityCriteria(AbstractCriteria $criteria)
     {
@@ -114,7 +108,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     }
 
     /**
-     * @return PaginableCriteriaInterface
+     * {@inheritdoc}
      */
     public function getCollectionCriteria()
     {
@@ -125,8 +119,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     }
 
     /**
-     * @param PaginableCriteriaInterface $criteria
-     * @return $this
+     * {@inheritdoc}
      */
     public function setCollectionCriteria(PaginableCriteriaInterface $criteria)
     {
@@ -147,8 +140,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     }
 
     /**
-     * @param HydratorInterface $hydrator
-     * @return $this
+     * {@inheritdoc}
      */
     public function setCollectionCriteriaHydrator(HydratorInterface $hydrator)
     {

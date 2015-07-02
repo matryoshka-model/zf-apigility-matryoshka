@@ -8,19 +8,28 @@
  */
 namespace Matryoshka\Apigility\Model;
 
+use Matryoshka\Apigility\Exception\RuntimeException;
 use Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria;
 use Matryoshka\Model\Criteria\PaginableCriteriaInterface;
+use Matryoshka\Model\ModelAwareInterface;
+use Matryoshka\Model\ModelInterface;
+use Matryoshka\Model\Object\ObjectManager;
+use Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyAwareInterface;
 use Zend\Stdlib\Hydrator\HydratorAwareInterface;
 use Zend\Stdlib\Hydrator\HydratorInterface;
-use Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyAwareInterface;
-use Matryoshka\Model\ModelAwareInterface;
-use Matryoshka\Model\Object\ObjectManager;
 
 /**
  * Interface MatryoshkaConnectedResourceInterface
  */
-interface MatryoshkaConnectedResourceInterface extends ModelAwareInterface, HydratorAwareInterface, PrototypeStrategyAwareInterface
+interface MatryoshkaConnectedResourceInterface extends
+    ModelAwareInterface,
+    HydratorAwareInterface,
+    PrototypeStrategyAwareInterface
 {
+    /**
+     *@param ModelInterface $model
+     */
+    public function __construct(ModelInterface $model);
 
     /**
      * Set the object manager instance
@@ -37,7 +46,6 @@ interface MatryoshkaConnectedResourceInterface extends ModelAwareInterface, Hydr
      * @throws RuntimeException
      */
     public function getObjectManager();
-
 
     /**
      * Set the entity class name

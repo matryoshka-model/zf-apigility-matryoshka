@@ -15,7 +15,6 @@ use Matryoshka\Model\Object\ObjectManager;
 use Zend\ServiceManager\AbstractFactoryInterface;
 use Zend\ServiceManager\AbstractPluginManager;
 use Zend\ServiceManager\ServiceLocatorInterface;
-use Zend\Stdlib\Hydrator\HydratorAwareInterface;
 use Zend\Stdlib\Hydrator\HydratorInterface;
 
 /**
@@ -95,13 +94,10 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
 
         $config = $this->getConfig($serviceLocator)[$requestedName];
         $model = $this->getModelServiceFromConfig($config, $serviceLocator, $requestedName);
-        $collectionClass = $this->getCollectionFromConfig($config, $requestedName);
-
         $resourceClass = $this->getResourceClassFromConfig($config, $requestedName);
 
         /* @var $resource MatryoshkaConnectedResourceInterface */
         $resource = new $resourceClass($model);
-
 
         // Entity setup
         if (!empty($config['entity_class'])) {
@@ -118,7 +114,8 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
         }
 
         // Collection setup
-        $resource->setCollectionClass($this->getCollectionFromConfig($config, $requestedName));
+        $collectionClass = $this->getCollectionFromConfig($config, $requestedName);
+        $resource->setCollectionClass($collectionClass);
 
         if (!empty($config['collection_criteria'])) {
             $resource->setCollectionCriteria($serviceLocator->get($config['collection_criteria']));
