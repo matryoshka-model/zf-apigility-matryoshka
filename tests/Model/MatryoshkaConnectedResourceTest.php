@@ -9,7 +9,10 @@
 namespace MatryoshkaTest\Apigility\Model;
 
 use Matryoshka\Apigility\Model\MatryoshkaConnectedResource;
+use MatryoshkaTest\Apigility\Asset\HydratorAwareAsset;
 use PHPUnit_Framework_TestCase;
+use Zend\InputFilter\InputFilter;
+use Zend\Stdlib\Hydrator\ClassMethods;
 
 /**
  * Class MatryoshkaConnectedResourceTest
@@ -24,13 +27,30 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         $model = $this->getMock('Matryoshka\Model\AbstractModel');
-        $objectManager = $this->getMock('Matryoshka\Model\Object\ObjectManager');
-        $this->resource = new MatryoshkaConnectedResource($model, $objectManager);
+        $this->resource = new MatryoshkaConnectedResource($model);
     }
 
     public function testConstruct()
     {
         $this->assertInstanceOf('Matryoshka\Apigility\Model\MatryoshkaConnectedResourceInterface', $this->resource);
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testGetObjectManagerException()
+    {
+        $this->resource->getObjectManager();
+    }
+
+    /**
+     * @depends testGetObjectManagerException
+     */
+    public function testGetSetObjectManager()
+    {
+        $objectManager = $this->getMock('Matryoshka\Model\Object\ObjectManager');
+        $this->resource->setObjectManager($objectManager);
+        $this->assertSame($objectManager, $this->resource->getObjectManager());
     }
 
     public function testGetSetEntityCriteria()
@@ -72,4 +92,59 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
         $this->assertSame($this->resource, $this->resource->setCollectionCriteriaHydrator($hydrator));
         $this->assertSame($hydrator, $this->resource->getCollectionCriteriaHydrator());
     }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testHydratorObjectException()
+    {
+        $reflection = new \ReflectionClass(get_class($this->resource));
+        $method = $reflection->getMethod('hydrateObject');
+        $method->setAccessible(true);
+
+        $method->invokeArgs($this->resource, [[], $this->resource]);
+    }
+
+    /**
+     * @depends testHydratorObjectException
+     */
+    public function testHydratorObject()
+    {
+        $reflection = new \ReflectionClass(get_class($this->resource));
+        $method = $reflection->getMethod('hydrateObject');
+        $method->setAccessible(true);
+        $hydratorAware = new HydratorAwareAsset();
+        $hydratorAware->setHydrator(new ClassMethods());
+
+        $this->assertNull($method->invokeArgs($this->resource, [[], $hydratorAware]));
+    }
+
+    public function testRetrieveDataFromInputFilter()
+    {
+        $reflectionClass = new \ReflectionClass(get_class($this->resource));
+
+        $property = $reflectionClass->getProperty("inputFilter");
+        $property->setAccessible(true);
+        $property->setValue($this->resource, new InputFilter());
+
+        $method = $reflectionClass->getMethod('retrieveData');
+        $method->setAccessible(true);
+
+        $stdClass = new \stdClass();
+
+        $this->assertEmpty($method->invokeArgs($this->resource, [$stdClass]));
+    }
+
+    public function testRetrieveData()
+    {
+        $reflection = new \ReflectionClass(get_class($this->resource));
+        $method = $reflection->getMethod('retrieveData');
+        $method->setAccessible(true);
+        $stdClass = new \stdClass();
+
+        $this->assertEmpty($method->invokeArgs($this->resource, [$stdClass]));
+    }
+
+
+
 }
