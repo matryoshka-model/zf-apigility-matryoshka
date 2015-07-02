@@ -146,5 +146,50 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
     }
 
 
+    public function testFetchApiProblem()
+    {
+        $criteria = $this->getMock('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria');
+        $criteria->method('setId')
+            ->willReturn($criteria);
 
+        $model = $this->resource->getModel();
+        $model->method('find')
+            ->willReturn($this->getMock('Matryoshka\Model\ResultSet\HydratingResultSet'));
+
+        $this->resource->setEntityCriteria($criteria);
+        $this->assertInstanceOf('ZF\ApiProblem\ApiProblem', $this->resource->fetch('test'));
+    }
+
+    public function testFetch()
+    {
+        $criteria = $this->getMock('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria');
+        $criteria->method('setId')
+            ->willReturn($criteria);
+
+        $obj = new \stdClass();
+
+        $resultSet = $this->getMock('Matryoshka\Model\ResultSet\HydratingResultSet');
+        $resultSet->method('current')
+            ->willReturn($obj);
+
+        $model = $this->resource->getModel();
+        $model->method('find')
+            ->willReturn($resultSet);
+
+        $this->resource->setEntityCriteria($criteria);
+        $this->assertSame($obj, $this->resource->fetch('test'));
+    }
+
+    public function testFetchAll()
+    {
+        $criteria = $criteria = $this->getMock('Matryoshka\Model\Criteria\PaginableCriteriaInterface');
+
+        $model = $this->resource->getModel();
+        $model->method('getPaginatorAdapter')
+            ->willReturn($this->getMock('Zend\Paginator\Adapter\AdapterInterface'));
+
+        $this->resource->setCollectionCriteria($criteria);
+
+        $this->assertInstanceOf('Traversable', $this->resource->fetchAll(['test']));
+    }
 }
