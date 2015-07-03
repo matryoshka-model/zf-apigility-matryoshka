@@ -7,8 +7,8 @@
     "php": ">=5.5.0",
     "zendframework/zend-stdlib": "~2.5",
     "zendframework/zend-servicemanager": "~2.5",
-    "matryoshka-model/zf2-matryoshka-module": "~0.7.0",
-    "matryoshka-model/matryoshka": "~0.7.0",
+    "matryoshka-model/zf2-matryoshka-module": "0.8.*@dev",
+    "matryoshka-model/matryoshka": "0.8.*@dev",
     "zfcampus/zf-api-problem": "~1.0",
     "zfcampus/zf-rest": "~1.1"
   },
