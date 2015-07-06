@@ -45,6 +45,9 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
                             'Matryoshka\Model\ResultSet\ArrayObjectResultSet',
                         'Matryoshka\Model\ResultSet\HydratingResultSet' =>
                             'Matryoshka\Model\ResultSet\HydratingResultSet',
+                        'Matryoshka\Model\Object\PrototypeStrategy\CloneStrategy' =>
+                            'Matryoshka\Model\Object\PrototypeStrategy\CloneStrategy'
+
                     ],
                     'services' => [
                         'Matryoshka\Criteria\Test1' => $this->getMockForAbstractClass(
@@ -98,6 +101,12 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
                         'hydrator' => 'objectpropertyException',
                         'resource_class' => 'Test'
                     ],
+                    'MatryoshkaApigility\ConnectedResourceWithPrototypeStrategy' => [
+                        'model' => 'Matryoshka\Model',
+                        'entity_class' => 'Test',
+                        'prototype_strategy' => 'Matryoshka\Model\Object\PrototypeStrategy\CloneStrategy',
+                    ],
+
                 ]
             ],
         ];
@@ -154,6 +163,13 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
             'Matryoshka\Apigility\Model\MatryoshkaConnectedResourceInterface',
             $this->serviceManager->get('MatryoshkaApigility\ConnectedResource1')
         );
+    }
+
+    public function testWithPrototypeStrategy()
+    {
+        $connectedResource = $this->serviceManager->get('MatryoshkaApigility\ConnectedResourceWithPrototypeStrategy');
+        $prototypeStrategy = $this->serviceManager->get('Matryoshka\Model\Object\PrototypeStrategy\CloneStrategy');
+        $this->assertSame($prototypeStrategy, $connectedResource->getPrototypeStrategy());
     }
 
     public function testServiceWithAbstractPluginManagerInstance()

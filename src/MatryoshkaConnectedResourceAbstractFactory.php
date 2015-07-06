@@ -113,6 +113,10 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
             $resource->setHydrator($this->getHydratorByName($serviceLocator, $config['hydrator']));
         }
 
+        if (!empty($config['prototype_strategy'])) {
+            $resource->setPrototypeStrategy($serviceLocator->get($config['prototype_strategy']));
+        }
+
         // Collection setup
         $collectionClass = $this->getCollectionFromConfig($config, $requestedName);
         $resource->setCollectionClass($collectionClass);
