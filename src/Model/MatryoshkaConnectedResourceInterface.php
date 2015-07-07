@@ -97,7 +97,7 @@ interface MatryoshkaConnectedResourceInterface extends
     /**
      * Get the collection (paginable) criteria
      *
-     * @return PaginableCriteriaInterface
+     * @return PaginableCriteriaInterface|null
      */
     public function getCollectionCriteria();
 

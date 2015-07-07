@@ -112,9 +112,6 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function getCollectionCriteria()
     {
-        if (!$this->collectionCriteria) {
-            throw new RuntimeException('Collection criteria required');
-        }
         return $this->collectionCriteria;
     }
 
@@ -215,11 +212,12 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     {
         // when no params and no collectionCriteria have been set
         // then the model default criteria is used
-        $criteria = $this->getCollectionCriteria();
+        $criteria = $this->collectionCriteria;
         $params = (array) $params;
         if (!empty($params)) {
             // when params are present, collectionCriteria is mandatory
             // because we need to hydrate the criteria with current params
+            $criteria = $this->getCollectionCriteria();
             $hydrator = $this->getCollectionCriteriaHydrator();
             $hydrator->hydrate($params, $criteria);
         }
