@@ -112,6 +112,9 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function getCollectionCriteria()
     {
+        if (!$this->collectionCriteria) {
+            throw new RuntimeException('Collection criteria required');
+        }
         return $this->collectionCriteria;
     }
 

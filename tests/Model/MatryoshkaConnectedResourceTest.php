@@ -74,12 +74,19 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
     public function testGetSetCollectionCriteria()
     {
-        $this->assertNull($this->resource->getCollectionCriteria()); // test default
         $criteria = $this->getMock('Matryoshka\Model\Criteria\PaginableCriteriaInterface');
         $this->assertSame($this->resource, $this->resource->setCollectionCriteria($criteria));
         $this->assertSame($criteria, $this->resource->getCollectionCriteria());
     }
 
+    /**
+     * @depends testGetSetCollectionCriteria
+     * @expectedException \Matryoshka\Apigility\Exception\RuntimeException
+     */
+    public function testGetCollectionCriteriaException()
+    {
+        $this->resource->getCollectionCriteria();
+    }
 
     public function testGetSetCollectionCriteriaHydrator()
     {
@@ -188,6 +195,7 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
         $this->assertInstanceOf('Traversable', $this->resource->fetchAll(['test']));
     }
+
 
     public function testDelete()
     {
