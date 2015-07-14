@@ -248,14 +248,6 @@ class MatryoshkaConnectedResourceAbstractFactory implements AbstractFactoryInter
             $serviceLocator = $serviceLocator->get('HydratorManager');
         }
 
-        if (!$serviceLocator->has($name)) {
-            throw new RuntimeException(
-                sprintf(
-                    'Instance %s not config in the Hydrator Manager',
-                    $name
-                )
-            );
-        }
         return $serviceLocator->get($name);
     }
 
