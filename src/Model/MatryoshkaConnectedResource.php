@@ -23,6 +23,7 @@ use Zend\Stdlib\Hydrator\HydratorAwareTrait;
 use Zend\Stdlib\Hydrator\HydratorInterface;
 use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
+use Zend\Stdlib\ArrayUtils;
 
 /**
  * Class MatryoshkaConnectedResource
@@ -235,13 +236,26 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function update($id, $data)
     {
-        $data = $this->retrieveData($data);
-
-        $object = $this->fetch($id);
-        if ($object instanceof ApiProblem) {
-            return $object;
+        // Does entity exist?
+        $oldObject = $this->fetch($id);
+        if ($oldObject instanceof ApiProblem) {
+            return $oldObject;
         }
 
+        // Merge new data on top old one
+        $data = ArrayUtils::merge(
+            $this->extractData($oldObject),
+            $this->retrieveData($data)
+        );
+
+        // Get a new object instance in order to ensure that a new entity class can work properly
+        if ($entityClass = $this->getEntityClass()) {
+            $object = $this->getObjectManager()->get($entityClass);
+        } else {
+            $object = $this->getPrototypeStrategy()->createObject($this->model->getObjectPrototype(), $data);
+        }
+
+        // Finally, hydrate and save the new object, replacing the old one
         $this->hydrateObject($data, $object);
 
         if ($object instanceof ModelAwareInterface) {
@@ -295,5 +309,22 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
             }
         }
         $hydrator->hydrate($data, $object);
+    }
+
+    /**
+     * @param object $object
+     * @throws \RuntimeException
+     */
+    protected function extractData($object)
+    {
+        $hydrator = $this->getHydrator();
+        if (!$hydrator) {
+            if ($object instanceof HydratorAwareInterface && $object->getHydrator()) {
+                $hydrator = $object->getHydrator();
+            } else {
+                throw new RuntimeException('Cannot get a hydrator');
+            }
+        }
+        return $hydrator->extract($object);
     }
 }

@@ -11,10 +11,14 @@ namespace MatryoshkaTest\Apigility\Model;
 use Matryoshka\Apigility\Model\MatryoshkaConnectedResource;
 use Matryoshka\Model\ModelAwareInterface;
 use Matryoshka\Model\Object\ActiveRecord\ActiveRecordInterface;
+use Matryoshka\Model\Hydrator\ClassMethods;
 use MatryoshkaTest\Apigility\Asset\HydratorAwareAsset;
 use PHPUnit_Framework_TestCase;
 use Zend\InputFilter\InputFilter;
-use Zend\Stdlib\Hydrator\ClassMethods;
+use Zend\Stdlib\Hydrator\Zend\Stdlib\Hydrator;
+use MatryoshkaTest\Apigility\Asset\TestObject;
+use MatryoshkaTest\Apigility\Asset\MatryoshkaTest\Apigility\Asset;
+
 
 /**
  * Class MatryoshkaConnectedResourceTest
@@ -30,6 +34,11 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
     {
         /** @var $model \Matryoshka\Model\ModelInterface */
         $model = $this->getMock('Matryoshka\Model\AbstractModel');
+        $model->method('getObjectPrototype')
+              ->willReturn((new TestObject())->setActiveRecordCriteriaPrototype(
+                  $this->getMock('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria')
+              ));
+
         $this->resource = new MatryoshkaConnectedResource($model);
     }
 
@@ -231,7 +240,9 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
         $criteria->method('setId')
             ->willReturn($criteria);
 
-        $obj = $this->getMock('Matryoshka\Model\Object\ActiveRecord\AbstractActiveRecord');
+        $obj = new TestObject();
+        $obj->setActiveRecordCriteriaPrototype($criteria);
+        $obj->setId(3);
 
         $resultSet = $this->getMock('Matryoshka\Model\ResultSet\HydratingResultSet');
         $resultSet->method('current')
@@ -243,7 +254,13 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
         $this->resource->setHydrator(new ClassMethods());
         $this->resource->setEntityCriteria($criteria);
-        $this->assertSame($obj, $this->resource->update($obj, []));
+
+        $testData = [
+            'id' => 4,
+        ];
+
+        $updatedObject = $this->resource->update(3, $testData);
+        $this->assertEquals(4, $updatedObject->getId());
     }
 
     public function testPatch()
@@ -252,7 +269,10 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
         $criteria->method('setId')
             ->willReturn($criteria);
 
-        $obj = $this->getMock('Matryoshka\Model\Object\ActiveRecord\AbstractActiveRecord');
+        $obj = new TestObject();
+        $obj->setActiveRecordCriteriaPrototype($criteria);
+        $obj->setId(3);
+
 
         $resultSet = $this->getMock('Matryoshka\Model\ResultSet\HydratingResultSet');
         $resultSet->method('current')
@@ -264,7 +284,13 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
         $this->resource->setHydrator(new ClassMethods());
         $this->resource->setEntityCriteria($criteria);
-        $this->assertSame($obj, $this->resource->patch($obj, []));
+
+        $testData = [
+            'id' => 6,
+        ];
+
+        $updatedObject = $this->resource->patch(3, $testData);
+        $this->assertEquals(6, $updatedObject->getId());
     }
 
     /**
