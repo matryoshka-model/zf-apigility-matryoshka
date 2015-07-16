@@ -162,7 +162,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
             $object = $this->getPrototypeStrategy()->createObject($this->model->getObjectPrototype(), $data);
         }
 
-        $this->hydrateObject($data, $object);
+        $this->retrieveHydrator($object)->hydrate($data, $object);
 
         if ($object instanceof ActiveRecordInterface) {
             if ($object instanceof ModelAwareInterface) {
@@ -244,7 +244,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
 
         // Merge new data on top old one
         $data = ArrayUtils::merge(
-            $this->extractData($oldObject),
+            $this->retrieveHydrator($oldObject)->extract($oldObject),
             $this->retrieveData($data)
         );
 
@@ -256,7 +256,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
         }
 
         // Finally, hydrate and save the new object, replacing the old one
-        $this->hydrateObject($data, $object);
+        $this->retrieveHydrator($object)->hydrate($data, $object);
 
         if ($object instanceof ModelAwareInterface) {
             $object->setModel($this->getModel());
@@ -294,11 +294,11 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     }
 
     /**
-     * @param array $data
      * @param object $object
-     * @throws \RuntimeException
+     * @throws RuntimeException
+     * @return HydratorInterface
      */
-    protected function hydrateObject(array $data, $object)
+    protected function retrieveHydrator($object)
     {
         $hydrator = $this->getHydrator();
         if (!$hydrator) {
@@ -308,23 +308,8 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
                 throw new RuntimeException('Cannot get a hydrator');
             }
         }
-        $hydrator->hydrate($data, $object);
+        return $hydrator;
     }
 
-    /**
-     * @param object $object
-     * @throws \RuntimeException
-     */
-    protected function extractData($object)
-    {
-        $hydrator = $this->getHydrator();
-        if (!$hydrator) {
-            if ($object instanceof HydratorAwareInterface && $object->getHydrator()) {
-                $hydrator = $object->getHydrator();
-            } else {
-                throw new RuntimeException('Cannot get a hydrator');
-            }
-        }
-        return $hydrator->extract($object);
-    }
+
 }

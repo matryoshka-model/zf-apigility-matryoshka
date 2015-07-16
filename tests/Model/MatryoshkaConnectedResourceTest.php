@@ -18,6 +18,7 @@ use Zend\InputFilter\InputFilter;
 use Zend\Stdlib\Hydrator\Zend\Stdlib\Hydrator;
 use MatryoshkaTest\Apigility\Asset\TestObject;
 use MatryoshkaTest\Apigility\Asset\MatryoshkaTest\Apigility\Asset;
+use Zend\Stdlib\Hydrator\HydratorInterface;
 
 
 /**
@@ -108,27 +109,30 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
     /**
      * @expectedException \Matryoshka\Apigility\Exception\RuntimeException
      */
-    public function testHydrateObjectException()
+    public function testRetrieveHydratorException()
     {
         $reflection = new \ReflectionClass(get_class($this->resource));
-        $method = $reflection->getMethod('hydrateObject');
+        $method = $reflection->getMethod('retrieveHydrator');
         $method->setAccessible(true);
 
         $method->invokeArgs($this->resource, [[], $this->resource]);
     }
 
     /**
-     * @depends testHydrateObjectException
+     * @depends testRetrieveHydratorException
      */
-    public function testHydrateObject()
+    public function testRetrieveHydrator()
     {
         $reflection = new \ReflectionClass(get_class($this->resource));
-        $method = $reflection->getMethod('hydrateObject');
+        $method = $reflection->getMethod('retrieveHydrator');
         $method->setAccessible(true);
         $hydratorAware = new HydratorAwareAsset();
         $hydratorAware->setHydrator(new ClassMethods());
 
-        $this->assertNull($method->invokeArgs($this->resource, [[], $hydratorAware]));
+        $this->assertInstanceOf(HydratorInterface::class, $method->invokeArgs($this->resource, [$hydratorAware]));
+
+        $this->resource->setHydrator(new ClassMethods());
+        $this->assertInstanceOf(HydratorInterface::class, $method->invokeArgs($this->resource, [new \stdClass()]));
     }
 
     public function testRetrieveDataFromInputFilter()
@@ -261,6 +265,21 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
         $updatedObject = $this->resource->update(3, $testData);
         $this->assertEquals(4, $updatedObject->getId());
+
+        // Test with entity_class and the object manager
+
+        $anotherObj = clone $obj;
+        $anotherObj->setId(33);
+        $objectManager = $this->getMock('Matryoshka\Model\Object\ObjectManager');
+        $objectManager->method('get')->willReturn($anotherObj);
+
+        $this->resource->setObjectManager($objectManager);
+        $this->resource->setEntityClass('Foo');
+
+        $testData['id'] = 11;
+        $updatedObject = $this->resource->update(33, $testData);
+        $this->assertEquals(11, $updatedObject->getId());
+
     }
 
     public function testPatch()
