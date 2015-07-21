@@ -242,17 +242,21 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
             return $oldObject;
         }
 
-        // Merge new data on top old one
-        $data = ArrayUtils::merge(
+        // $data could not cointain all fields so we merge new data on top the old one
+        $data = array_merge(
             $this->retrieveHydrator($oldObject)->extract($oldObject),
             $this->retrieveData($data)
         );
 
-        // Get a new object instance in order to ensure that a new entity class can work properly
+        // Get a new object instance in order to ensure that saving operation
+        // can work properly even if the entity class is different
         if ($entityClass = $this->getEntityClass()) {
             $object = $this->getObjectManager()->get($entityClass);
         } else {
-            $object = $this->getPrototypeStrategy()->createObject($this->model->getObjectPrototype(), $data);
+            $object = $this->getPrototypeStrategy()->createObject(
+                $this->getModel()->getObjectPrototype(),
+                $data
+            );
         }
 
         // Finally, hydrate and save the new object, replacing the old one
@@ -271,7 +275,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function patch($id, $data)
     {
-        // TODO: a partial update should be applied
+        // TODO: a partial update could be applied if a specific criteria is available
         return $this->update($id, $data);
     }
 
