@@ -7,7 +7,29 @@ Matryoshka connected resource
 
 [![Matryoshka Model's Slack](http://matryoshka-slackin.herokuapp.com/badge.svg?style=flat-square)](http://matryoshka-slackin.herokuapp.com)
 
-**WIP**
+## Installation
+
+Install it using [composer](http://getcomposer.org).
+
+Add the following to your `composer.json` file:
+
+```
+"require": {
+    "matryoshka-model/zf-apigility-matryoshka": "~0.1.0"
+}
+```
+
+## Requirements
+
+- PHP >= 5.5
+- zendframework/zend-stdlib ~2.5.0
+- zendframework/zend-servicemanager ~2.5.0
+- zfcampus/zf-api-problem ~1.0
+- zfcampus/zf-rest ~1.1
+- matryoshka-model/zf2-matryoshka-module ~0.8.0
+- matryoshka-model/matryoshka ~0.8.0
+    
+> Note that, due to interface incompatibility with zendframework/zend-hydrator, the current version can not work with zendframework/zend-stdlib > 2.5. This issue will be fixed within next release.
 
 #### Community
 
