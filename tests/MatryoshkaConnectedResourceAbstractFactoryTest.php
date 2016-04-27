@@ -11,8 +11,9 @@ namespace MatryoshkaTest\Apigility;
 use Matryoshka\Apigility\Exception\RuntimeException;
 use MatryoshkaTest\Apigility\Asset\FakePluginManager;
 use PHPUnit_Framework_TestCase;
-use Zend\Mvc\Service\ServiceManagerConfig;
+use Zend\ServiceManager\Config;
 use Zend\ServiceManager;
+use Zend\Stdlib\Hydrator\ObjectProperty;
 
 /**
  * Class MatryoshkaConnectedResourceAbstractFactoryTest
@@ -27,7 +28,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
     public function setUp()
     {
         $this->serviceManager = new ServiceManager\ServiceManager(
-            new ServiceManagerConfig(
+            new Config(
                 [
                     'abstract_factories' => [
                         'Matryoshka\Apigility\MatryoshkaConnectedResourceAbstractFactory',
@@ -76,7 +77,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
                         'entity_criteria' => 'Matryoshka\Criteria\Test1',
                         'collection_criteria' => 'Matryoshka\Criteria\CollectionTest1',
                         'hydrator' => 'objectproperty',
-                        'collection_criteria_hydrator' => 'objectproperty',
+                        'collection_criteria_hydrator' => ObjectProperty::class, // ZF stdlib <= 2.5 backward compatible hydrator 
                         'resource_class' => 'Matryoshka\Apigility\Model\MatryoshkaConnectedResource'
                     ],
                     'MatryoshkaApigility\ConnectedResource2' => [],
@@ -123,7 +124,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
     public function testEmptyConfig()
     {
         $this->serviceManager = new ServiceManager\ServiceManager(
-            new ServiceManagerConfig(
+            new Config(
                 [
                     'abstract_factories' => [
                         'Matryoshka\Apigility\MatryoshkaConnectedResourceAbstractFactory',
@@ -134,7 +135,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
         $this->assertFalse($this->serviceManager->has('MatryoshkaApigility\ConnectedResource1'));
 
         $this->serviceManager = new ServiceManager\ServiceManager(
-            new ServiceManagerConfig(
+            new Config(
                 [
                     'abstract_factories' => [
                         'Matryoshka\Apigility\MatryoshkaConnectedResourceAbstractFactory',
@@ -222,7 +223,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
     public function testGetServiceWithExceptionForWrongObjectEntityConfig()
     {
         $serviceManager = new ServiceManager\ServiceManager(
-            new ServiceManagerConfig(
+            new Config(
                 [
                     'abstract_factories' => [
                         'Matryoshka\Apigility\MatryoshkaConnectedResourceAbstractFactory',
@@ -272,6 +273,7 @@ class MatryoshkaConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_T
         $serviceManager->setService('Config', $config);
         /* @var $mm \Matryoshka\Model\ModelManager */
         $mm = $serviceManager->get('Matryoshka\Model\ModelManager');
+        $mm->setServiceLocator($serviceManager);
         $mock = $this->getMockBuilder('Matryoshka\Model\Model')
             ->disableOriginalConstructor()
             ->getMock();
