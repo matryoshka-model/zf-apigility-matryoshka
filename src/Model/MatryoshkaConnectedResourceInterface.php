@@ -9,7 +9,6 @@
 namespace Matryoshka\Apigility\Model;
 
 use Matryoshka\Apigility\Exception\RuntimeException;
-use Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria;
 use Matryoshka\Model\Criteria\PaginableCriteriaInterface;
 use Matryoshka\Model\ModelAwareInterface;
 use Matryoshka\Model\ModelInterface;
@@ -17,6 +16,7 @@ use Matryoshka\Model\Object\ObjectManager;
 use Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyAwareInterface;
 use Zend\Stdlib\Hydrator\HydratorAwareInterface;
 use Zend\Stdlib\Hydrator\HydratorInterface;
+use Matryoshka\Model\Criteria\IdentityCriteriaInterface;
 
 /**
  * Interface MatryoshkaConnectedResourceInterface
@@ -27,7 +27,7 @@ interface MatryoshkaConnectedResourceInterface extends
     PrototypeStrategyAwareInterface
 {
     /**
-     *@param ModelInterface $model
+     * @param ModelInterface $model
      */
     public function __construct(ModelInterface $model);
 
@@ -63,11 +63,11 @@ interface MatryoshkaConnectedResourceInterface extends
     /**
      * Set the entity criteria
      *
-     * @param AbstractCriteria $criteria
+     * @param IdentityCriteriaInterface $criteria
      * @param $criteria
      * @return $this
      */
-    public function setEntityCriteria(AbstractCriteria $criteria);
+    public function setEntityCriteria(IdentityCriteriaInterface $criteria);
 
     /**
      * @return AbstractCriteria
