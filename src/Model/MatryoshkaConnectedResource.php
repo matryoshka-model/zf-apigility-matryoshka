@@ -3,18 +3,16 @@
  * Matryoshka Connected Resource for Apigility
  *
  * @link        https://github.com/matryoshka-model/zf-apigility-matryoshka
- * @copyright   Copyright (c) 2015, Ripa Club
+ * @copyright   Copyright (c) 2015-2016, Ripa Club
  * @license     http://opensource.org/licenses/BSD-2-Clause Simplified BSD License
  */
 namespace Matryoshka\Apigility\Model;
 
 use Matryoshka\Apigility\Exception\RuntimeException;
-use Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria;
 use Matryoshka\Model\Criteria\PaginableCriteriaInterface;
 use Matryoshka\Model\ModelAwareInterface;
 use Matryoshka\Model\ModelAwareTrait;
 use Matryoshka\Model\ModelInterface;
-use Matryoshka\Model\Object\ActiveRecord\ActiveRecordInterface;
 use Matryoshka\Model\Object\ObjectManager;
 use Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyAwareTrait;
 use Zend\Stdlib\Hydrator\ClassMethods;
@@ -23,7 +21,10 @@ use Zend\Stdlib\Hydrator\HydratorAwareTrait;
 use Zend\Stdlib\Hydrator\HydratorInterface;
 use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
-use Zend\Stdlib\ArrayUtils;
+use Matryoshka\Model\Criteria\IdentityCriteriaInterface;
+use Matryoshka\Model\Criteria\WritableCriteriaInterface;
+use Matryoshka\Model\Criteria\DeletableCriteriaInterface;
+use Matryoshka\Model\Criteria\ReadableCriteriaInterface;
 
 /**
  * Class MatryoshkaConnectedResource
@@ -41,7 +42,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     protected $collectionClass = 'Zend\Paginator\Paginator';
 
     /**
-     * @var AbstractCriteria
+     * @var IdentityCriteriaInterface
      */
     protected $entityCriteria;
 
@@ -102,7 +103,7 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
     /**
      * {@inheritdoc}
      */
-    public function setEntityCriteria(AbstractCriteria $criteria)
+    public function setEntityCriteria(IdentityCriteriaInterface $criteria)
     {
         $this->entityCriteria = $criteria;
         return $this;
@@ -163,19 +164,21 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
         }
 
         $this->retrieveHydrator($object)->hydrate($data, $object);
-
-        if ($object instanceof ActiveRecordInterface) {
-            if ($object instanceof ModelAwareInterface) {
-                $object->setModel($this->model);
-            }
-            $object->save();
+        
+        if ($object instanceof ModelAwareInterface) {
+            $object->setModel($this->getModel());
+        }
+        
+        $entityCriteria = clone $this->getEntityCriteria();
+        if ($entityCriteria instanceof WritableCriteriaInterface) {
+            $this->getModel()->save($this->getEntityCriteria(), $object);
             return $object;
         }
 
         throw new RuntimeException(
             sprintf(
-                'Misconfigured connected resource: the object is not an instance of "%s"',
-                ActiveRecordInterface::class
+                'Cannot create entity: criteria is not an instance of "%s"',
+                WritableCriteriaInterface::class
             ),
             500
         );
@@ -186,11 +189,22 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function delete($id)
     {
-        $result = $this->getModel()->delete(
-            $this->getEntityCriteria()->setId($id)
+        $entityCriteria = clone $this->getEntityCriteria();
+        if ($entityCriteria instanceof DeletableCriteriaInterface) {
+                $result = $this->getModel()->delete(
+                $entityCriteria->setId($id)
+            );
+            //when $result is null means we have no information about operation completation
+            return ($result === null || $result > 0);
+        }
+        
+        throw new RuntimeException(
+            sprintf(
+                'Cannot delete entity: criteria is not an instance of "%s"',
+                DeletableCriteriaInterface::class
+            ),
+            500
         );
-        //when $result is null means we have no information about operation completation
-        return ($result === null || $result > 0);
     }
 
     /**
@@ -198,15 +212,27 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function fetch($id)
     {
-        $object = $this->getModel()->find(
-            $this->getEntityCriteria()->setId($id)
-        )->current();
+        $entityCriteria = clone $this->getEntityCriteria();
+        if ($entityCriteria instanceof ReadableCriteriaInterface) {
+            $object = $this->getModel()->find(
+                $entityCriteria->setId($id)
+            )->current();
 
-        if (!$object) {
-            return new ApiProblem(404, 'Item not found');
+            if (!$object) {
+                return new ApiProblem(404, 'Item not found');
+            }
+            
+            return $object;
         }
 
-        return $object;
+        throw new RuntimeException(
+            sprintf(
+                'Cannot fetch entity: criteria is not an instance of "%s"',
+                ReadableCriteriaInterface::class
+            ),
+            500
+        );
+        
     }
 
     /**
@@ -214,18 +240,19 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
      */
     public function fetchAll($params = [])
     {
-        // when no params and no collectionCriteria have been set
-        // then the model default criteria is used
-        $criteria = $this->collectionCriteria;
         $params = (array) $params;
-        if (!empty($params)) {
+        if (empty($params)) {
+            // when no params and no collectionCriteria have been set
+            // then the model default criteria is used
+            $criteria = $this->collectionCriteria ? clone $this->collectionCriteria : null;
+        } else {
             // when params are present, collectionCriteria is mandatory
             // because we need to hydrate the criteria with current params
-            $criteria = $this->getCollectionCriteria();
+            $criteria = clone $this->getCollectionCriteria();
             $hydrator = $this->getCollectionCriteriaHydrator();
             $hydrator->hydrate($params, $criteria);
         }
-
+        
         $paginatorAdapter = $this->getModel()->getPaginatorAdapter($criteria);
         $collectionClassName = $this->getCollectionClass();
         return new $collectionClassName($paginatorAdapter);
@@ -265,9 +292,20 @@ class MatryoshkaConnectedResource extends AbstractResourceListener implements Ma
         if ($object instanceof ModelAwareInterface) {
             $object->setModel($this->getModel());
         }
-
-        $object->save();
-        return $object;
+        
+        $entityCriteria = clone $this->getEntityCriteria();
+        if ($entityCriteria instanceof WritableCriteriaInterface) {
+            $this->getModel()->save($entityCriteria->setId($id), $object);
+            return $object;
+        }
+        
+        throw new RuntimeException(
+            sprintf(
+                'Cannot update entity: criteria is not an instance of "%s"',
+                WritableCriteriaInterface::class
+            ),
+            500
+        );
     }
 
     /**

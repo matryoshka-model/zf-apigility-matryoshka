@@ -3,7 +3,7 @@
  * Matryoshka Connected Resource for Apigility
  *
  * @link        https://github.com/matryoshka-model/zf-apigility-matryoshka
- * @copyright   Copyright (c) 2015, Ripa Club
+ * @copyright   Copyright (c) 2015-2016, Ripa Club
  * @license     http://opensource.org/licenses/BSD-2-Clause Simplified BSD License
  */
 namespace MatryoshkaTest\Apigility\Model;
@@ -19,6 +19,13 @@ use Zend\Stdlib\Hydrator\Zend\Stdlib\Hydrator;
 use MatryoshkaTest\Apigility\Asset\TestObject;
 use MatryoshkaTest\Apigility\Asset\MatryoshkaTest\Apigility\Asset;
 use Zend\Stdlib\Hydrator\HydratorInterface;
+use Matryoshka\Apigility\Exception\RuntimeException;
+use Matryoshka\Model\Criteria\IdentityCriteriaInterface;
+use Matryoshka\Model\Criteria\ReadableCriteriaInterface;
+use Matryoshka\Model\Criteria\DeletableCriteriaInterface;
+use Matryoshka\Model\Criteria\WritableCriteriaInterface;
+use MatryoshkaTest\Apigility\Asset\ReadableIdentityCriteria;
+use Zend\Stdlib\Hydrator\ObjectProperty;
 
 
 /**
@@ -198,17 +205,32 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
     public function testFetchAll()
     {
-        $criteria = $criteria = $this->getMock('Matryoshka\Model\Criteria\PaginableCriteriaInterface');
+        $criteria = $this->getMock('Matryoshka\Model\Criteria\PaginableCriteriaInterface', ['setBaz', 'getPaginatorAdapter']);
 
         $model = $this->resource->getModel();
         $model->method('getPaginatorAdapter')
             ->willReturn($this->getMock('Zend\Paginator\Adapter\AdapterInterface'));
 
+        // Test empty params and no collection criteria    
+        $this->assertInstanceOf('Traversable', $this->resource->fetchAll());
+        
         $this->resource->setCollectionCriteria($criteria);
-
-        $this->assertInstanceOf('Traversable', $this->resource->fetchAll(['test']));
+        
+        // Test empty params and with collection criteria
+        $this->assertInstanceOf('Traversable', $this->resource->fetchAll());
+            
+        // Test with params and collection criteria
+        $criteria->expects($this->atLeastOnce())->method('setBaz')->with('foo');
+        $this->assertInstanceOf('Traversable', $this->resource->fetchAll(['baz' => 'foo']));
     }
-
+    
+    /**
+     * @expectedException \Matryoshka\Apigility\Exception\RuntimeException
+     */
+    public function testFetchAllShouldThrowExceptionWhenParamAndNoCollectionCriteria()
+    {
+        $this->resource->fetchAll(['baz' => 'foo']);
+    }
 
     public function testDelete()
     {
@@ -331,7 +353,12 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
         $prototypeStratey = $this->getMock('Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyInterface');
         $prototypeStratey->method('createObject')->willReturn($object);
-
+        
+        $criteria = $this->getMock('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria');
+        $criteria->method('setId')
+                 ->willReturn($criteria);
+        
+        $this->resource->setEntityCriteria($criteria);
         $this->resource->setHydrator(new ClassMethods);
         $this->resource->setPrototypeStrategy($prototypeStratey);
         $result = $this->resource->create([]);
@@ -351,6 +378,11 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
         $objectManager = $this->getMock('Matryoshka\Model\Object\ObjectManager');
         $objectManager->method('get')->willReturn($object);
 
+        $criteria = $this->getMock('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria');
+        $criteria->method('setId')
+                 ->willReturn($criteria);
+        
+        $this->resource->setEntityCriteria($criteria);
         $this->resource->setObjectManager($objectManager);
         $this->resource->setEntityClass('TestEntityClass');
         $this->resource->setHydrator(new ClassMethods);
@@ -371,6 +403,11 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
         $prototypeStratey = $this->getMock('Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyInterface');
         $prototypeStratey->method('createObject')->willReturn($object);
 
+        $criteria = $this->getMock('Matryoshka\Model\Criteria\ActiveRecord\AbstractCriteria');
+        $criteria->method('setId')
+        ->willReturn($criteria);
+        
+        $this->resource->setEntityCriteria($criteria);
         $this->resource->setHydrator(new ClassMethods);
         $this->resource->setPrototypeStrategy($prototypeStratey);
 
@@ -389,5 +426,73 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
         );
 
         $this->assertSame($object, $result);
+    }
+    
+    public function testCreateShouldThrowExceptionWhenCriteriaIsNotWritable()
+    {
+        $criteria = $this->getMock(IdentityCriteriaInterface::class);
+        
+        $prototypeStratey = $this->getMock('Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyInterface');
+        $prototypeStratey->method('createObject')->willReturn(new \stdClass);
+        
+        $this->resource->setEntityCriteria($criteria);
+        $this->resource->setHydrator(new ClassMethods);
+        $this->resource->setPrototypeStrategy($prototypeStratey);
+        
+        $this->setExpectedException(RuntimeException::class, sprintf(
+            'Cannot create entity: criteria is not an instance of "%s"',
+            WritableCriteriaInterface::class
+        ));
+        $this->resource->create([]);
+    }
+    
+    public function testDeleteShouldThrowExceptionWhenCriteriaIsNotDeletable()
+    {
+        $criteria = $this->getMock(IdentityCriteriaInterface::class);
+    
+        $this->resource->setEntityCriteria($criteria);
+    
+        $this->setExpectedException(RuntimeException::class, sprintf(
+            'Cannot delete entity: criteria is not an instance of "%s"',
+            DeletableCriteriaInterface::class
+        ));
+        $this->resource->delete('foo');
+    }
+    
+    public function testFetchShouldThrowExceptionWhenCriteriaIsNotReadable()
+    {
+        $criteria = $this->getMock(IdentityCriteriaInterface::class);
+        $this->resource->setEntityCriteria($criteria);
+    
+        $this->setExpectedException(RuntimeException::class, sprintf(
+            'Cannot fetch entity: criteria is not an instance of "%s"',
+            ReadableCriteriaInterface::class
+        ));
+        $this->resource->fetch('foo');
+    }
+    
+    public function testUpdateShouldThrowExceptionWhenCriteriaIsNotWritable()
+    {
+        $criteria = new ReadableIdentityCriteria;
+    
+        $prototypeStratey = $this->getMock('Matryoshka\Model\Object\PrototypeStrategy\PrototypeStrategyInterface');
+        $prototypeStratey->method('createObject')->willReturn(new \stdClass);
+    
+        $this->resource->setEntityCriteria($criteria);
+        $this->resource->setHydrator(new ClassMethods);
+        $this->resource->setPrototypeStrategy($prototypeStratey);
+        
+        $resultSet = $this->getMock('Matryoshka\Model\ResultSet\HydratingResultSet');
+        $resultSet->method('current')->willReturn(new \stdClass);
+        
+        $model = $this->resource->getModel();
+        $model->method('find')->willReturn($resultSet);
+        
+    
+        $this->setExpectedException(RuntimeException::class, sprintf(
+            'Cannot update entity: criteria is not an instance of "%s"',
+            WritableCriteriaInterface::class
+            ));
+        $this->resource->update('foo', []);
     }
 }
