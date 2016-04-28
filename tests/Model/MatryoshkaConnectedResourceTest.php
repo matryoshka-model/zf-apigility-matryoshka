@@ -25,6 +25,7 @@ use Matryoshka\Model\Criteria\ReadableCriteriaInterface;
 use Matryoshka\Model\Criteria\DeletableCriteriaInterface;
 use Matryoshka\Model\Criteria\WritableCriteriaInterface;
 use MatryoshkaTest\Apigility\Asset\ReadableIdentityCriteria;
+use Zend\Stdlib\Hydrator\ObjectProperty;
 
 
 /**
@@ -204,17 +205,32 @@ class MatryoshkaConnectedResourceTest extends PHPUnit_Framework_TestCase
 
     public function testFetchAll()
     {
-        $criteria = $criteria = $this->getMock('Matryoshka\Model\Criteria\PaginableCriteriaInterface');
+        $criteria = $this->getMock('Matryoshka\Model\Criteria\PaginableCriteriaInterface', ['setBaz', 'getPaginatorAdapter']);
 
         $model = $this->resource->getModel();
         $model->method('getPaginatorAdapter')
             ->willReturn($this->getMock('Zend\Paginator\Adapter\AdapterInterface'));
 
+        // Test empty params and no collection criteria    
+        $this->assertInstanceOf('Traversable', $this->resource->fetchAll());
+        
         $this->resource->setCollectionCriteria($criteria);
-
-        $this->assertInstanceOf('Traversable', $this->resource->fetchAll(['test']));
+        
+        // Test empty params and with collection criteria
+        $this->assertInstanceOf('Traversable', $this->resource->fetchAll());
+            
+        // Test with params and collection criteria
+        $criteria->expects($this->atLeastOnce())->method('setBaz')->with('foo');
+        $this->assertInstanceOf('Traversable', $this->resource->fetchAll(['baz' => 'foo']));
     }
-
+    
+    /**
+     * @expectedException \Matryoshka\Apigility\Exception\RuntimeException
+     */
+    public function testFetchAllShouldThrowExceptionWhenParamAndNoCollectionCriteria()
+    {
+        $this->resource->fetchAll(['baz' => 'foo']);
+    }
 
     public function testDelete()
     {
